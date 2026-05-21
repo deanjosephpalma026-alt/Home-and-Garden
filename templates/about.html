@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+    .nav-link {
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 1px;
+      bottom: -4px;
+      left: 0;
+      background-color: #000;
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+  
+  <header class="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Home And Garden" class="w-10 h-10 transition-transform group-hover:scale-105">
+          <span class="text-xl font-light tracking-tight">Home And Garden</span>
+        </a>
+
+        
+        <nav class="hidden lg:flex items-center gap-10">
+          <a href="{{ url_for('main.home') }}" class="nav-link text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+          <a href="/products" class="nav-link text-sm font-light text-gray-700 hover:text-gray-900">Products</a>
+          <a href="{{ url_for('main.about') }}" class="nav-link text-sm font-light text-gray-900 border-b border-gray-900 pb-1">About</a>
+          
+          {% if session.get('id') %}
+            <a href="{{ url_for('order.my_orders') }}" class="nav-link text-sm font-light text-gray-700 hover:text-gray-900">My Orders</a>
+            <a href="{{ url_for('order.cart') }}" class="relative text-gray-700 hover:text-gray-900 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+            </a>
+            <a href="{{ url_for('user.profile') }}" class="flex items-center">
+              <img src="{{ url_for('static', filename=session.get('profile_image', 'uploads/profile/default.jpg')) }}" 
+                   class="w-8 h-8 rounded-full object-cover border border-gray-200">
+            </a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="text-sm font-light border border-gray-900 px-4 py-2 hover:bg-gray-900 hover:text-white transition">Login</a>
+            <a href="{{ url_for('auth.signup') }}" class="text-sm font-light border border-gray-900 px-4 py-2 hover:bg-gray-900 hover:text-white transition">Sign Up</a>
+          {% endif %}
+        </nav>
+
+        
+        <button id="mobileMenuBtn" class="lg:hidden text-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    
+    <div id="mobileMenu" class="lg:hidden hidden border-t border-gray-100">
+      <nav class="px-6 py-6 space-y-4">
+        <a href="{{ url_for('main.home') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+        <a href="/products" class="block text-sm font-light text-gray-700 hover:text-gray-900">Products</a>
+        <a href="{{ url_for('main.about') }}" class="block text-sm font-light text-gray-900 border-b border-gray-900 pb-1">About</a>
+        {% if session.get('id') %}
+          <a href="{{ url_for('order.my_orders') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">My Orders</a>
+          <a href="{{ url_for('order.cart') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Cart</a>
+          <a href="{{ url_for('user.profile') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Profile</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Login</a>
+          <a href="{{ url_for('auth.signup') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Sign Up</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  
+  <section class="py-16 lg:py-24">
+    <div class="max-w-4xl mx-auto px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h1 class="text-4xl lg:text-5xl font-light tracking-tight text-gray-900 mb-6">
+          About Home And Garden
+        </h1>
+        <p class="text-lg text-gray-600 font-light max-w-2xl mx-auto">
+          Your trusted partner in creating beautiful and comfortable living spaces
+        </p>
+      </div>
+
+      <div class="space-y-12">
+        
+        <div class="space-y-4">
+          <h2 class="text-2xl font-light text-gray-900">Our Story</h2>
+          <div class="space-y-4 text-gray-600 font-light leading-relaxed">
+            <p>
+              Home And Garden was founded with a simple yet powerful vision: to bring comfort and beauty into every home through carefully curated home and garden essentials. We believe that your living space should be a reflection of your personality and a sanctuary where you can relax, create, and thrive.
+            </p>
+            <p>
+              What started as a passion project has grown into a trusted e-commerce platform connecting customers with quality products from verified sellers across the Philippines. We've built a community of home enthusiasts, gardeners, and lifestyle seekers who share our commitment to quality and style.
+            </p>
+          </div>
+        </div>
+
+        
+        <div class="space-y-4">
+          <h2 class="text-2xl font-light text-gray-900">Our Mission</h2>
+          <div class="space-y-4 text-gray-600 font-light leading-relaxed">
+            <p>
+              Our mission is to make premium home and garden products accessible to everyone. We strive to provide a seamless shopping experience while supporting local sellers and artisans. Through our platform, we aim to:
+            </p>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+              <li>Offer a diverse selection of high-quality home and garden products</li>
+              <li>Support local sellers and small businesses in growing their reach</li>
+              <li>Provide exceptional customer service and reliable delivery</li>
+              <li>Create a community of home and garden enthusiasts</li>
+              <li>Make home improvement accessible and enjoyable for everyone</li>
+            </ul>
+          </div>
+        </div>
+
+        
+        <div class="space-y-4">
+          <h2 class="text-2xl font-light text-gray-900">What We Offer</h2>
+          <div class="space-y-4 text-gray-600 font-light leading-relaxed">
+            <p>
+              At Home And Garden, we offer a wide range of products carefully selected to meet your home and garden needs:
+            </p>
+            <div class="grid md:grid-cols-2 gap-6 mt-6">
+              <div class="space-y-2">
+                <h3 class="text-lg font-light text-gray-900">Home Essentials</h3>
+                <p class="text-sm text-gray-600">From furniture and decor to kitchen appliances and bedding, we have everything you need to transform your living space.</p>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-lg font-light text-gray-900">Garden Tools</h3>
+                <p class="text-sm text-gray-600">Professional-grade gardening tools and equipment to help you create and maintain your dream garden.</p>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-lg font-light text-gray-900">Outdoor Living</h3>
+                <p class="text-sm text-gray-600">Enhance your outdoor spaces with our selection of patio furniture, outdoor decor, and garden accessories.</p>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-lg font-light text-gray-900">Verified Sellers</h3>
+                <p class="text-sm text-gray-600">All our sellers are verified and approved, ensuring you receive authentic, quality products every time.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="space-y-4">
+          <h2 class="text-2xl font-light text-gray-900">Why Choose Us</h2>
+          <div class="grid md:grid-cols-3 gap-6 mt-6">
+            <div class="text-center space-y-2">
+              <div class="w-12 h-12 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h3 class="text-base font-light text-gray-900">Quality Assured</h3>
+              <p class="text-sm text-gray-600 font-light">Every product is carefully vetted for quality and authenticity.</p>
+            </div>
+            <div class="text-center space-y-2">
+              <div class="w-12 h-12 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+              </div>
+              <h3 class="text-base font-light text-gray-900">Easy Shopping</h3>
+              <p class="text-sm text-gray-600 font-light">Simple, intuitive platform designed for a seamless shopping experience.</p>
+            </div>
+            <div class="text-center space-y-2">
+              <div class="w-12 h-12 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <h3 class="text-base font-light text-gray-900">Reliable Delivery</h3>
+              <p class="text-sm text-gray-600 font-light">Fast and secure delivery right to your doorstep.</p>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="border-t border-gray-200 pt-12 space-y-4">
+          <h2 class="text-2xl font-light text-gray-900">Get In Touch</h2>
+          <p class="text-gray-600 font-light leading-relaxed">
+            Have questions or need assistance? We're here to help! Browse our products, create an account, or reach out to our support team. Your satisfaction is our priority, and we're committed to making your shopping experience with Home And Garden exceptional.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 mt-6">
+            <a href="/products" class="inline-block text-sm font-light border border-gray-900 px-8 py-3 hover:bg-gray-900 hover:text-white transition text-center">
+              Browse Products
+            </a>
+            <a href="{{ url_for('main.home') }}" class="inline-block text-sm font-light text-gray-700 hover:text-gray-900 underline underline-offset-4 text-center">
+              Back to Home
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <footer class="border-t border-gray-100 py-16 mt-24">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+        <div class="text-center md:text-left">
+          <div class="flex items-center justify-center md:justify-start gap-3 mb-4">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="w-8 h-8">
+            <span class="text-lg font-light">Home And Garden</span>
+          </div>
+          <p class="text-sm text-gray-600 font-light">Bringing comfort home, one garden at a time.</p>
+        </div>
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 mb-4 text-center md:text-left">Shop</h4>
+          <ul class="space-y-2 text-sm font-light text-gray-600 text-center md:text-left">
+            <li><a href="/products" class="hover:text-gray-900 transition">All Products</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 mb-4 text-center md:text-left">About</h4>
+          <ul class="space-y-2 text-sm font-light text-gray-600 text-center md:text-left">
+            <li><a href="{{ url_for('main.about') }}" class="hover:text-gray-900 transition">About Us</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-100 pt-8 text-center text-sm text-gray-500 font-light">
+        <p>&copy; 2024 Home And Garden. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile Menu Toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    if (mobileMenuBtn && mobileMenu) {
+      mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
+  </script>
+</body>
+</html>
+

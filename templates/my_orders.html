@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/confirm-modal.css') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+  
+  <header class="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Home And Garden" class="w-10 h-10 transition-transform group-hover:scale-105">
+          <span class="text-xl font-light tracking-tight">Home And Garden</span>
+        </a>
+
+        
+        <nav class="hidden lg:flex items-center gap-10">
+          <a href="{{ url_for('main.home') }}" class="text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+          <a href="/products" class="text-sm font-light text-gray-700 hover:text-gray-900">Products</a>
+          {% if session.get('id') %}
+            <a href="{{ url_for('order.cart') }}" class="relative text-gray-700 hover:text-gray-900 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+            </a>
+            <a href="{{ url_for('user.profile') }}" class="flex items-center">
+              <img src="{{ url_for('static', filename=session.get('profile_image', 'uploads/profile/default.jpg')) }}" 
+                   class="w-8 h-8 rounded-full object-cover border border-gray-200">
+            </a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="text-sm font-light border border-gray-900 px-4 py-2 hover:bg-gray-900 hover:text-white transition">Login</a>
+            <a href="{{ url_for('auth.signup') }}" class="text-sm font-light border border-gray-900 px-4 py-2 hover:bg-gray-900 hover:text-white transition">Sign Up</a>
+          {% endif %}
+        </nav>
+
+        
+        <button id="mobileMenuBtn" class="lg:hidden text-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    
+    <div id="mobileMenu" class="lg:hidden hidden border-t border-gray-100">
+      <nav class="px-6 py-6 space-y-4">
+        <a href="{{ url_for('main.home') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+        <a href="/products" class="block text-sm font-light text-gray-700 hover:text-gray-900">Products</a>
+        {% if session.get('id') %}
+          <a href="{{ url_for('order.cart') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Cart</a>
+          <a href="{{ url_for('user.profile') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Profile</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Login</a>
+          <a href="{{ url_for('auth.signup') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Sign Up</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  
+  <section class="py-8 sm:py-12 lg:py-24 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-8 sm:mb-12">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight text-gray-900 mb-4">
+          My Orders
+        </h1>
+        <p class="text-sm text-gray-600 font-light">
+          View and track all your orders
+        </p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div data-flash-message="{{ message }}" data-flash-category="{{ category }}" style="display: none;"></div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="mb-8 border-b border-gray-200">
+        <div class="flex gap-0 overflow-x-auto">
+          <button onclick="showOrderTab('to-pay')" class="order-tab px-6 py-4 text-sm font-light border-b-2 border-gray-900 text-gray-900 whitespace-nowrap" data-tab="to-pay">
+            To Pay
+            {% if to_pay|length > 0 %}<span class="ml-2 bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">{{ to_pay|length }}</span>{% endif %}
+          </button>
+          <button onclick="showOrderTab('to-ship')" class="order-tab px-6 py-4 text-sm font-light border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap" data-tab="to-ship">
+            To Ship
+            {% if to_ship|length > 0 %}<span class="ml-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">{{ to_ship|length }}</span>{% endif %}
+          </button>
+          <button onclick="showOrderTab('to-receive')" class="order-tab px-6 py-4 text-sm font-light border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap" data-tab="to-receive">
+            To Receive
+            {% if to_receive|length > 0 %}<span class="ml-2 bg-purple-500 text-white text-xs px-2 py-0.5 rounded-full">{{ to_receive|length }}</span>{% endif %}
+          </button>
+          <button onclick="showOrderTab('completed')" class="order-tab px-6 py-4 text-sm font-light border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap" data-tab="completed">
+            Completed
+            {% if completed|length > 0 %}<span class="ml-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">{{ completed|length }}</span>{% endif %}
+          </button>
+          <button onclick="showOrderTab('refunded')" class="order-tab px-6 py-4 text-sm font-light border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap" data-tab="refunded">
+            Refunded
+            {% if refunded|length > 0 %}<span class="ml-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">{{ refunded|length }}</span>{% endif %}
+          </button>
+          <button onclick="showOrderTab('cancelled')" class="order-tab px-6 py-4 text-sm font-light border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap" data-tab="cancelled">
+            Cancelled
+            {% if cancelled|length > 0 %}<span class="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{{ cancelled|length }}</span>{% endif %}
+          </button>
+        </div>
+      </div>
+
+      <div id="tab-to-pay" class="order-tab-content">
+        {% if to_pay %}
+        <div class="space-y-4">
+          {% for order in to_pay %}
+          <div class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex gap-3 sm:gap-4 flex-1">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0">
+                  <img src="{{ url_for('static', filename=order.product_image) }}" alt="{{ order.product_name }}" class="w-full h-full object-cover rounded">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-sm font-light text-gray-900 mb-1">{{ order.product_name }}</h3>
+                  <p class="text-xs text-gray-600 mb-2">From: {{ order.shop_name }}</p>
+                  <div class="flex flex-wrap gap-2 sm:gap-4 text-xs text-gray-600">
+                    <span>Qty: {{ order.quantity }}</span>
+                    <span>Total: ₱{{ "%.2f"|format(order.total) }}</span>
+                    <span class="hidden sm:inline">Date: {{ order.order_date.strftime('%b %d, %Y') if order.order_date else 'N/A' }}</span>
+                  </div>
+                  <span class="sm:hidden text-xs text-gray-500 mt-1 block">Date: {{ order.order_date.strftime('%b %d, %Y') if order.order_date else 'N/A' }}</span>
+                </div>
+              </div>
+              <div class="flex flex-col md:items-end gap-2">
+                <span class="px-3 py-1 rounded-full text-xs font-light bg-yellow-100 text-yellow-800 whitespace-nowrap">
+                  Awaiting Payment Confirmation
+                </span>
+                <span class="text-xs text-gray-500">Waiting for seller confirmation</span>
+                <form id="cancel-order-form-{{ order.id }}" action="{{ url_for('order.delete_order', order_id=order.id) }}" method="POST" class="mt-2">
+                  <button type="submit" class="text-xs font-light text-red-600 hover:text-red-800 underline underline-offset-4">
+                    Cancel Order
+                  </button>
+                </form>
+                <script>
+                  document.getElementById('cancel-order-form-{{ order.id }}').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const result = await customConfirm('Are you sure you want to cancel this order?', {
+                      title: 'Cancel Order', type: 'warning', confirmText: 'Yes, Cancel Order', cancelText: 'Keep Order', confirmButtonClass: 'confirm-modal-button-danger'
+                    });
+                    if (result) this.submit();
+                  });
+                </script>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+          <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+          </svg>
+          <p class="text-sm font-light text-gray-500">No orders awaiting payment</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div id="tab-to-ship" class="order-tab-content hidden">
+        {% if to_ship %}
+      <div class="space-y-4">
+          {% for order in to_ship %}
+        <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex gap-4 flex-1">
+              <div class="w-20 h-20 flex-shrink-0">
+                  <img src="{{ url_for('static', filename=order.product_image) }}" alt="{{ order.product_name }}" class="w-full h-full object-cover rounded">
+              </div>
+              <div class="flex-1">
+                <h3 class="text-sm font-light text-gray-900 mb-1">{{ order.product_name }}</h3>
+                <p class="text-xs text-gray-600 mb-2">From: {{ order.shop_name }}</p>
+                <div class="flex flex-wrap gap-4 text-xs text-gray-600">
+                  <span>Qty: {{ order.quantity }}</span>
+                  <span>Total: ₱{{ "%.2f"|format(order.total) }}</span>
+                  <span>Date: {{ order.order_date.strftime('%b %d, %Y') if order.order_date else 'N/A' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col md:items-end gap-2">
+              <div class="flex flex-wrap gap-2">
+                  <span class="px-3 py-1 rounded-full text-xs font-light bg-green-100 text-green-800">
+                  Payment: {{ order.payment_status }}
+                </span>
+                  <span class="px-3 py-1 rounded-full text-xs font-light bg-blue-100 text-blue-800">
+                    {% if order.delivery_status == 'picked_up' %}Pick up by Rider
+                    {% elif order.delivery_status == 'assigned' %}Rider Assigned
+                    {% else %}Preparing to Ship{% endif %}
+                  </span>
+                </div>
+                <span class="text-xs text-gray-500">
+                  {% if order.delivery_status == 'picked_up' %}Rider has picked up your order
+                  {% else %}Seller is preparing your order{% endif %}
+                </span>
+                {% if order.delivery_status not in ['picked_up', 'in_transit', 'delivered'] %}
+                <form id="cancel-order-form-{{ order.id }}" action="{{ url_for('order.delete_order', order_id=order.id) }}" method="POST" class="mt-2">
+                  <button type="submit" class="text-xs font-light text-red-600 hover:text-red-800 underline underline-offset-4">
+                    Cancel Order
+                  </button>
+                </form>
+                <script>
+                  document.getElementById('cancel-order-form-{{ order.id }}').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const result = await customConfirm('Are you sure you want to cancel this order? The stock will be restored.', {
+                      title: 'Cancel Order', type: 'warning', confirmText: 'Yes, Cancel Order', cancelText: 'Keep Order', confirmButtonClass: 'confirm-modal-button-danger'
+                    });
+                    if (result) this.submit();
+                  });
+                </script>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+          <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+          </svg>
+          <p class="text-sm font-light text-gray-500">No orders to ship</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div id="tab-to-receive" class="order-tab-content hidden">
+        {% if to_receive %}
+        <div class="space-y-4">
+          {% for order in to_receive %}
+          <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex gap-4 flex-1">
+                <div class="w-20 h-20 flex-shrink-0">
+                  <img src="{{ url_for('static', filename=order.product_image) }}" alt="{{ order.product_name }}" class="w-full h-full object-cover rounded">
+                </div>
+                <div class="flex-1">
+                  <h3 class="text-sm font-light text-gray-900 mb-1">{{ order.product_name }}</h3>
+                  <p class="text-xs text-gray-600 mb-2">From: {{ order.shop_name }}</p>
+                  <div class="flex flex-wrap gap-4 text-xs text-gray-600">
+                    <span>Qty: {{ order.quantity }}</span>
+                    <span>Total: ₱{{ "%.2f"|format(order.total) }}</span>
+                    <span>Date: {{ order.order_date.strftime('%b %d, %Y') if order.order_date else 'N/A' }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col md:items-end gap-2">
+                <div class="flex flex-wrap gap-2">
+                  {% if order.delivery_status == 'picked_up' %}
+                  <span class="px-3 py-1 rounded-full text-xs font-light bg-purple-100 text-purple-800">
+                    Picked Up by Rider
+                  </span>
+                  {% elif order.delivery_status == 'in_transit' %}
+                  <span class="px-3 py-1 rounded-full text-xs font-light bg-indigo-100 text-indigo-800 flex items-center gap-1">
+                    <svg class="w-3 h-3 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1h3.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-5a1 1 0 00-.293-.707l-3-3A1 1 0 0016 5h-5V4a1 1 0 00-1-1H3z"/>
+                    </svg>
+                    Parcel is Out for Delivery
+                  </span>
+                  {% elif order.delivery_status == 'delivered' %}
+                  <span class="px-3 py-1 rounded-full text-xs font-light bg-green-100 text-green-800">
+                    Delivered
+                </span>
+                {% endif %}
+              </div>
+                {% if order.delivery_status == 'delivered' %}
+                <p class="text-xs text-gray-500">Delivered on {{ order.delivered_at.strftime('%b %d, %Y') if order.delivered_at else 'N/A' }}</p>
+                
+                {% if order.delivery_proof %}
+                <button onclick="openDeliveryProofViewer('{{ url_for('static', filename=order.delivery_proof) }}')" 
+                        class="mt-2 inline-flex items-center gap-1 text-xs font-light text-blue-600 hover:text-blue-800 underline underline-offset-4">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  View Proof of Delivery
+                </button>
+                {% endif %}
+                
+                <button onclick="confirmOrderReceived({{ order.id }})" 
+                        class="mt-2 px-4 py-2 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition">
+                  Order Received
+                </button>
+                {% endif %}
+                {% if order.delivery_status == 'delivered' and order.refund_status != 'approved' and order.refund_status != 'pending' %}
+                <button onclick="openRefundModal({{ order.id }}, '{{ order.product_name|replace("'", "\\'")|replace('"', '&quot;') }}', '{{ order.product_image }}', {{ order.total }})" 
+                        class="mt-2 text-xs font-light text-orange-600 hover:text-orange-800 underline underline-offset-4">
+                  Request a Refund
+                </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+          <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+          <p class="text-sm font-light text-gray-500">No orders to receive</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div id="tab-completed" class="order-tab-content hidden">
+        {% if completed %}
+        <div class="space-y-4">
+          {% for order in completed %}
+          <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex gap-4 flex-1">
+                <div class="w-20 h-20 flex-shrink-0">
+                  <img src="{{ url_for('static', filename=order.product_image) }}" alt="{{ order.product_name }}" class="w-full h-full object-cover rounded">
+                </div>
+                <div class="flex-1">
+                  <h3 class="text-sm font-light text-gray-900 mb-1">{{ order.product_name }}</h3>
+                  <p class="text-xs text-gray-600 mb-2">From: {{ order.shop_name }}</p>
+                  <div class="flex flex-wrap gap-4 text-xs text-gray-600">
+                    <span>Qty: {{ order.quantity }}</span>
+                    <span>Total: ₱{{ "%.2f"|format(order.total) }}</span>
+                    <span>Date: {{ order.order_date.strftime('%b %d, %Y') if order.order_date else 'N/A' }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col md:items-end gap-2">
+                {% if order.payment_status == 'Cancelled' %}
+                <span class="px-3 py-1 rounded-full text-xs font-light bg-red-100 text-red-800">Cancelled</span>
+                {% else %}
+                <span class="px-3 py-1 rounded-full text-xs font-light bg-green-100 text-green-800">Completed</span>
+                <span class="text-xs text-gray-500">Order received on {{ order.order_received_at.strftime('%b %d, %Y') if order.order_received_at else 'N/A' }}</span>
+                
+                {% if order.delivery_proof %}
+                <button onclick="openDeliveryProofViewer('{{ url_for('static', filename=order.delivery_proof) }}')" 
+                        class="mt-1 inline-flex items-center gap-1 text-xs font-light text-blue-600 hover:text-blue-800 underline underline-offset-4">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  View Proof of Delivery
+                </button>
+                {% endif %}
+                
+                <span class="mt-1 text-xs text-gray-400 italic">Refund no longer available</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+        <div class="text-center py-16">
+          <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p class="text-sm font-light text-gray-500">No completed orders yet</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div id="tab-refunded" class="order-tab-content hidden">
+        {% if refunded %}
+        <div class="space-y-4">
+          {% for order in refunded %}
+          <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex gap-4 flex-1">
+                <div class="w-20 h-20 flex-shrink-0">
+                  <img src="{{ url_for('static', filename=order.product_image) }}" alt="{{ order.product_name }}" class="w-full h-full object-cover rounded">
+                </div>
+                <div class="flex-1">
+                  <h3 class="text-sm font-light text-gray-900 mb-1">{{ order.product_name }}</h3>
+                  <p class="text-xs text-gray-600 mb-2">From: {{ order.shop_name }}</p>
+                  <div class="flex flex-wrap gap-4 text-xs text-gray-600">
+                    <span>Qty: {{ order.quantity }}</span>
+                    <span>Total: ₱{{ "%.2f"|format(order.total) }}</span>
+                    <span>Date: {{ order.order_date.strftime('%b %d, %Y') if order.order_date else 'N/A' }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col md:items-end gap-2">
+                <span class="px-3 py-1 rounded-full text-xs font-light bg-orange-100 text-orange-800">Refunded</span>
+                <span class="text-xs text-green-600 mt-1">✓ Payment refunded via GCash/Maya</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+          <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <p class="text-sm font-light text-gray-500">No refunded orders</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div id="tab-cancelled" class="order-tab-content hidden">
+        {% if cancelled %}
+        <div class="space-y-4">
+          {% for order in cancelled %}
+          <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex gap-4 flex-1">
+                <div class="w-20 h-20 flex-shrink-0">
+                  <img src="{{ url_for('static', filename=order.product_image) }}" alt="{{ order.product_name }}" class="w-full h-full object-cover rounded">
+                </div>
+                <div class="flex-1">
+                  <h3 class="text-sm font-light text-gray-900 mb-1">{{ order.product_name }}</h3>
+                  <p class="text-xs text-gray-600 mb-2">From: {{ order.shop_name }}</p>
+                  <div class="flex flex-wrap gap-4 text-xs text-gray-600">
+                    <span>Qty: {{ order.quantity }}</span>
+                    <span>Total: ₱{{ "%.2f"|format(order.total) }}</span>
+                    <span>Date: {{ order.order_date.strftime('%b %d, %Y') if order.order_date else 'N/A' }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col md:items-end gap-2">
+                <span class="px-3 py-1 rounded-full text-xs font-light bg-red-100 text-red-800">Cancelled</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+          <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          <p class="text-sm font-light text-gray-500">No cancelled orders</p>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if not orders %}
+      <div class="text-center py-24">
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+        </svg>
+        <p class="text-lg font-light text-gray-600 mb-2">No orders yet</p>
+        <p class="text-sm text-gray-500 mb-6">Start shopping to see your orders here</p>
+        <a href="/products" class="inline-block text-sm font-light border border-gray-900 px-6 py-3 hover:bg-gray-900 hover:text-white transition">
+          Browse Products
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  
+  <footer class="border-t border-gray-100 py-12 mt-24">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center text-sm text-gray-500 font-light">
+      <p>&copy; 2024 Home And Garden. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div id="refundModal" class="fixed bottom-4 right-4 w-96 max-w-full z-50 hidden transform transition-all duration-300 ease-in-out">
+    <div class="bg-white shadow-2xl flex flex-col rounded-lg border-2 border-green-500 overflow-hidden" style="height: 600px; max-height: 90vh;">
+      <div class="bg-white px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-base font-medium text-gray-900">Request a Refund</h2>
+        <div class="flex items-center gap-2">
+          <button onclick="clearRefundForm()" class="text-gray-400 hover:text-gray-600 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+          </button>
+          <button onclick="closeRefundModal()" class="text-gray-400 hover:text-gray-600 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto p-4 bg-gray-50" id="refundChatArea">
+        <div class="mb-4">
+          <div class="inline-block max-w-xs bg-gray-200 rounded-lg px-4 py-2">
+            <p class="text-sm text-gray-800">Welcome! Please upload evidence (photo or video) of the item to request a refund.</p>
+            <p class="text-xs text-gray-500 mt-1" id="refundTimestamp"></p>
+          </div>
+        </div>
+        
+        <div id="refundItemInfo" class="mb-4 hidden">
+          <div class="inline-block max-w-xs bg-gray-200 rounded-lg px-4 py-3">
+            <div class="flex gap-3 items-start">
+              <img id="refundProductImage" src="" alt="Product" class="w-16 h-16 object-cover rounded border border-gray-300">
+              <div class="flex-1">
+                <h3 id="refundProductName" class="text-sm font-medium text-gray-900 mb-1"></h3>
+                <p id="refundProductTotal" class="text-xs text-gray-600"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="filePreviewMessage" class="mb-4 hidden">
+          <div class="inline-block max-w-xs bg-blue-100 rounded-lg px-4 py-3 ml-auto">
+            <p class="text-xs text-gray-700 mb-2">Evidence uploaded:</p>
+            <div id="previewContainer" class="rounded overflow-hidden">
+            </div>
+            <p id="fileNameDisplay" class="text-xs text-gray-600 mt-2"></p>
+          </div>
+        </div>
+        
+        <div id="reasonMessage" class="mb-4 hidden">
+          <div class="inline-block max-w-xs bg-blue-100 rounded-lg px-4 py-2 ml-auto">
+            <p class="text-xs text-gray-700 mb-1">Reason:</p>
+            <p id="reasonText" class="text-sm text-gray-800"></p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="px-4 py-3 bg-white border-t border-gray-200">
+        <button onclick="showRefundForm()" id="startRefundBtn" 
+                class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+          <span>Start Refund Request</span>
+        </button>
+      </div>
+      
+      <div id="refundFormArea" class="hidden bg-white border-t border-gray-200">
+        <form id="refundForm" onsubmit="submitRefundRequest(event)" enctype="multipart/form-data" class="p-4">
+          <input type="hidden" id="refundOrderId" name="order_id">
+          
+          <div class="mb-4">
+            <label for="evidenceFile" class="block text-xs font-medium text-gray-700 mb-2">
+              Upload Evidence <span class="text-red-500">*</span>
+            </label>
+            <input type="file" id="evidenceFile" name="evidence_file" accept="image/*,video/*" 
+                   class="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-red-500 transition"
+                   required>
+            <p class="text-xs text-gray-400 mt-1">Max 50MB • Images or Videos</p>
+          </div>
+          
+          <div class="mb-4">
+            <label for="refundReason" class="block text-xs font-medium text-gray-700 mb-2">
+              Reason (Optional)
+            </label>
+            <textarea id="refundReason" name="reason" rows="3" 
+                      class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-red-500 transition resize-none"
+                      placeholder="Type your reason here..."></textarea>
+          </div>
+          
+          <div class="flex gap-2">
+            <button type="button" onclick="cancelRefundForm()" 
+                    class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
+              Cancel
+            </button>
+            <button type="submit" id="submitRefundBtn"
+                    class="flex-1 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+              </svg>
+              <span>Submit</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <button id="refundFloatingBtn" onclick="toggleRefundModal()" 
+          class="fixed bottom-4 right-4 w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg z-40 flex items-center justify-center transition transform hover:scale-110">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+  </button>
+
+  <div id="refundNotification" class="fixed top-4 right-4 z-50 hidden bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm animate-slide-in">
+    <div class="flex items-start gap-3">
+      <div class="flex-shrink-0">
+        <svg id="refundNotificationIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 id="refundNotificationTitle" class="text-sm font-light text-gray-900 mb-1">Refund Request</h3>
+        <p id="refundNotificationMessage" class="text-xs text-gray-600"></p>
+        <div id="refundRejectionReason" class="mt-2 p-2 bg-red-50 rounded text-xs text-red-700 hidden"></div>
+      </div>
+      <button onclick="closeRefundNotification()" class="flex-shrink-0 text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <div id="notificationsPanel" class="fixed top-4 right-4 z-40 space-y-2 max-w-sm">
+    {% for notification in notifications %}
+    {% if not notification.is_read %}
+    <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-4 notification-item" data-notif-id="{{ notification.id }}">
+      <div class="flex items-start gap-3">
+        <div class="flex-shrink-0">
+          {% if notification.type == 'refund_approved' %}
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          {% elif notification.type == 'refund_rejected' %}
+          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          {% else %}
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          {% endif %}
+        </div>
+        <div class="flex-1">
+          <p class="text-xs text-gray-600 font-light">{{ notification.message }}</p>
+          <p class="text-xs text-gray-400 mt-1">{{ notification.created_at.strftime('%b %d, %I:%M %p') if notification.created_at else '' }}</p>
+        </div>
+        <button onclick="markNotificationRead({{ notification.id }}, this)" class="flex-shrink-0 text-gray-400 hover:text-gray-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  
+  <style>
+    @keyframes slide-in {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .animate-slide-in {
+      animation: slide-in 0.3s ease-out;
+    }
+    .notification-item {
+      animation: slide-in 0.3s ease-out;
+    }
+  </style>
+
+  <div id="deliveryProofViewerModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4" onclick="closeDeliveryProofViewer(event)">
+    <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h3 class="text-lg font-light text-gray-900">Proof of Delivery</h3>
+        </div>
+        <button onclick="closeDeliveryProofViewer()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <p class="text-sm text-gray-600 mb-4">This photo was taken by the rider as proof that your order has been delivered.</p>
+        <div class="flex justify-center">
+          <img id="deliveryProofImage" src="" alt="Proof of Delivery" class="max-w-full max-h-[60vh] object-contain rounded-lg border border-gray-200">
+        </div>
+      </div>
+      <div class="p-4 border-t border-gray-100 flex justify-end gap-2">
+        <a id="deliveryProofDownload" href="" download class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-light hover:bg-gray-50 transition rounded">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Download
+        </a>
+        <button onclick="closeDeliveryProofViewer()" class="px-4 py-2 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition rounded">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Delivery Proof Viewer Functions
+    function openDeliveryProofViewer(imageUrl) {
+      const modal = document.getElementById('deliveryProofViewerModal');
+      const image = document.getElementById('deliveryProofImage');
+      const downloadLink = document.getElementById('deliveryProofDownload');
+      
+      image.src = imageUrl;
+      downloadLink.href = imageUrl;
+      
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeDeliveryProofViewer(event) {
+      if (event && event.target !== event.currentTarget) return;
+      
+      const modal = document.getElementById('deliveryProofViewerModal');
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeDeliveryProofViewer();
+      }
+    });
+
+    // Mobile Menu Toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    if (mobileMenuBtn && mobileMenu) {
+      mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
+
+    // Order Tab Switching
+    function showOrderTab(tabName) {
+      document.querySelectorAll('.order-tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      
+      document.querySelectorAll('.order-tab').forEach(tab => {
+        tab.classList.remove('border-gray-900', 'text-gray-900');
+        tab.classList.add('border-transparent', 'text-gray-600');
+      });
+      
+      document.getElementById('tab-' + tabName).classList.remove('hidden');
+      
+      const activeTab = document.querySelector(`.order-tab[data-tab="${tabName}"]`);
+      if (activeTab) {
+        activeTab.classList.remove('border-transparent', 'text-gray-600');
+        activeTab.classList.add('border-gray-900', 'text-gray-900');
+      }
+    }
+
+    // Confirm Order Received
+    async function confirmOrderReceived(orderId) {
+      const result = await customConfirm(
+        'Confirm that you have received this order?',
+        {
+          title: 'Order Received',
+          type: 'success',
+          confirmText: 'Yes, I Received It',
+          cancelText: 'Cancel',
+          confirmButtonClass: 'confirm-modal-button-success'
+        }
+      );
+      
+      if (result) {
+        fetch('/confirm_order_received/' + orderId, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            showRefundNotification('success', 'Order Confirmed', data.message);
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+            showRefundNotification('error', 'Error', data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showRefundNotification('error', 'Error', 'Failed to confirm order. Please try again.');
+        });
+      }
+    }
+
+    // Refund Modal Functions
+    function openRefundModal(orderId, productName, productImage, total) {
+      document.getElementById('refundOrderId').value = orderId;
+      document.getElementById('refundProductName').textContent = productName;
+      document.getElementById('refundProductImage').src = '/static/' + productImage;
+      document.getElementById('refundProductTotal').textContent = 'Total: ₱' + parseFloat(total).toFixed(2);
+      
+      // Show item info
+      document.getElementById('refundItemInfo').classList.remove('hidden');
+      
+      // Set timestamp
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      document.getElementById('refundTimestamp').textContent = timeStr;
+      
+      // Show modal and hide floating button
+      document.getElementById('refundModal').classList.remove('hidden');
+      document.getElementById('refundFloatingBtn').classList.add('hidden');
+      
+      // Scroll to bottom
+      setTimeout(() => {
+        const chatArea = document.getElementById('refundChatArea');
+        chatArea.scrollTop = chatArea.scrollHeight;
+      }, 100);
+    }
+
+    function toggleRefundModal() {
+      const modal = document.getElementById('refundModal');
+      if (modal.classList.contains('hidden')) {
+        // Open modal - show welcome message
+        document.getElementById('refundItemInfo').classList.add('hidden');
+        document.getElementById('filePreviewMessage').classList.add('hidden');
+        document.getElementById('reasonMessage').classList.add('hidden');
+        document.getElementById('refundFormArea').classList.add('hidden');
+        document.getElementById('startRefundBtn').classList.remove('hidden');
+        
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        document.getElementById('refundTimestamp').textContent = timeStr;
+        
+        modal.classList.remove('hidden');
+        document.getElementById('refundFloatingBtn').classList.add('hidden');
+      } else {
+        closeRefundModal();
+      }
+    }
+
+    function closeRefundModal() {
+      document.getElementById('refundModal').classList.add('hidden');
+      document.getElementById('refundFloatingBtn').classList.remove('hidden');
+      resetRefundForm();
+    }
+
+    function showRefundForm() {
+      document.getElementById('startRefundBtn').classList.add('hidden');
+      document.getElementById('refundFormArea').classList.remove('hidden');
+      
+      // Scroll to bottom
+      setTimeout(() => {
+        const chatArea = document.getElementById('refundChatArea');
+        chatArea.scrollTop = chatArea.scrollHeight;
+      }, 100);
+    }
+
+    function cancelRefundForm() {
+      document.getElementById('refundFormArea').classList.add('hidden');
+      document.getElementById('startRefundBtn').classList.remove('hidden');
+      document.getElementById('refundForm').reset();
+      document.getElementById('filePreviewMessage').classList.add('hidden');
+      document.getElementById('reasonMessage').classList.add('hidden');
+    }
+
+    function clearRefundForm() {
+      resetRefundForm();
+      document.getElementById('refundChatArea').innerHTML = `
+        <div class="mb-4">
+          <div class="inline-block max-w-xs bg-gray-200 rounded-lg px-4 py-2">
+            <p class="text-sm text-gray-800">Welcome! Please upload evidence (photo or video) of the item to request a refund.</p>
+            <p class="text-xs text-gray-500 mt-1" id="refundTimestamp"></p>
+          </div>
+        </div>
+      `;
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      document.getElementById('refundTimestamp').textContent = timeStr;
+    }
+
+    function resetRefundForm() {
+      document.getElementById('refundForm').reset();
+      document.getElementById('filePreviewMessage').classList.add('hidden');
+      document.getElementById('reasonMessage').classList.add('hidden');
+      document.getElementById('refundFormArea').classList.add('hidden');
+      document.getElementById('startRefundBtn').classList.remove('hidden');
+    }
+
+    // File preview handler
+    document.getElementById('evidenceFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const previewContainer = document.getElementById('previewContainer');
+      const filePreviewMessage = document.getElementById('filePreviewMessage');
+      const fileNameDisplay = document.getElementById('fileNameDisplay');
+      
+      if (file) {
+        filePreviewMessage.classList.remove('hidden');
+        previewContainer.innerHTML = '';
+        
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          img.className = 'max-w-full h-auto rounded';
+          img.style.maxHeight = '150px';
+          previewContainer.appendChild(img);
+        } else if (file.type.startsWith('video/')) {
+          const video = document.createElement('video');
+          video.src = URL.createObjectURL(file);
+          video.controls = true;
+          video.className = 'max-w-full h-auto rounded';
+          video.style.maxHeight = '150px';
+          previewContainer.appendChild(video);
+        }
+        
+        // Show file name and size
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        fileNameDisplay.textContent = `${file.name} (${fileSizeMB} MB)`;
+        
+        // Scroll to show preview
+        setTimeout(() => {
+          const chatArea = document.getElementById('refundChatArea');
+          chatArea.scrollTop = chatArea.scrollHeight;
+        }, 100);
+      } else {
+        filePreviewMessage.classList.add('hidden');
+      }
+    });
+
+    // Reason input handler
+    document.getElementById('refundReason').addEventListener('input', function(e) {
+      const reason = e.target.value.trim();
+      const reasonMessage = document.getElementById('reasonMessage');
+      const reasonText = document.getElementById('reasonText');
+      
+      if (reason) {
+        reasonText.textContent = reason;
+        reasonMessage.classList.remove('hidden');
+        
+        // Scroll to show reason
+        setTimeout(() => {
+          const chatArea = document.getElementById('refundChatArea');
+          chatArea.scrollTop = chatArea.scrollHeight;
+        }, 100);
+      } else {
+        reasonMessage.classList.add('hidden');
+      }
+    });
+
+    function submitRefundRequest(event) {
+      event.preventDefault();
+      
+      const form = document.getElementById('refundForm');
+      const formData = new FormData(form);
+      const submitBtn = document.getElementById('submitRefundBtn');
+      
+      // Validate file
+      const fileInput = document.getElementById('evidenceFile');
+      if (!fileInput.files || !fileInput.files[0]) {
+        showRefundNotification('error', 'Error', 'Please upload a picture or video as evidence!');
+        return;
+      }
+      
+      // Disable submit button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      fetch('/request_refund', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Request';
+        closeRefundModal();
+        if (data.success) {
+          showRefundNotification('success', 'Refund Request Submitted', data.message);
+        } else {
+          if (data.redirect) {
+            showRefundNotification('error', 'Add Your Number First', data.message);
+            setTimeout(() => {
+              window.location.href = data.redirect;
+            }, 2000);
+          } else {
+            showRefundNotification('error', 'Error', data.message);
+          }
+        }
+      })
+      .catch(error => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Request';
+        closeRefundModal();
+        showRefundNotification('error', 'Error', 'Failed to submit refund request. Please try again.');
+        console.error('Error:', error);
+      });
+    }
+
+    function showRefundNotification(type, title, message, rejectionReason = null) {
+      const notification = document.getElementById('refundNotification');
+      const icon = document.getElementById('refundNotificationIcon');
+      const titleEl = document.getElementById('refundNotificationTitle');
+      const messageEl = document.getElementById('refundNotificationMessage');
+      const rejectionEl = document.getElementById('refundRejectionReason');
+      
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      
+      // Show/hide rejection reason
+      if (rejectionReason) {
+        rejectionEl.textContent = 'Reason: ' + rejectionReason;
+        rejectionEl.classList.remove('hidden');
+      } else {
+        rejectionEl.classList.add('hidden');
+      }
+      
+      // Update icon and colors based on type
+      if (type === 'success') {
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>';
+        icon.classList.remove('text-red-600');
+        icon.classList.add('text-green-600');
+        notification.classList.remove('border-red-200');
+        notification.classList.add('border-green-200');
+      } else {
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>';
+        icon.classList.remove('text-green-600');
+        icon.classList.add('text-red-600');
+        notification.classList.remove('border-green-200');
+        notification.classList.add('border-red-200');
+      }
+      
+      notification.classList.remove('hidden');
+      
+      // Auto-hide after 8 seconds (longer if there's a rejection reason)
+      setTimeout(() => {
+        closeRefundNotification();
+      }, rejectionReason ? 10000 : 5000);
+    }
+
+    function closeRefundNotification() {
+      document.getElementById('refundNotification').classList.add('hidden');
+    }
+
+    function markNotificationRead(notifId, button) {
+      fetch('/mark_notification_read/' + notifId, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && button) {
+          const notificationItem = button.closest('.notification-item');
+          if (notificationItem) {
+            notificationItem.style.opacity = '0';
+            setTimeout(() => {
+              notificationItem.remove();
+            }, 300);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error marking notification as read:', error);
+      });
+    }
+    
+    // Track shown notifications to avoid duplicates
+    const shownNotificationIds = new Set();
+
+    // Check for new notifications periodically
+    function checkNotifications() {
+      fetch('/get_user_notifications')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.notifications.length > 0) {
+            data.notifications.forEach(notif => {
+              // Skip if already shown in this session
+              if (shownNotificationIds.has(notif.id)) {
+                return;
+              }
+              shownNotificationIds.add(notif.id);
+              
+              // Show notification based on type
+              if (notif.type === 'refund_approved') {
+                showRefundNotification('success', 'Refund Approved', notif.message);
+              } else if (notif.type === 'refund_rejected') {
+                // Extract rejection reason from message
+                const reasonMatch = notif.message.match(/Reason: (.+)/);
+                const reason = reasonMatch ? reasonMatch[1] : null;
+                showRefundNotification('error', 'Refund Rejected', notif.message.split('Reason:')[0].trim(), reason);
+              } else if (notif.type === 'refund_picked_up') {
+                showRefundNotification('success', 'Item Picked Up', notif.message);
+              } else if (notif.type === 'refund_returned') {
+                showRefundNotification('success', 'Item Returned', notif.message);
+              }
+              
+              // Mark as read immediately after showing
+              fetch('/mark_notification_read/' + notif.id, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+              });
+            });
+          }
+        })
+        .catch(error => console.error('Error checking notifications:', error));
+    }
+
+    // Check notifications every 10 seconds
+    setInterval(checkNotifications, 10000);
+    // Also check on page load
+    checkNotifications();
+  </script>
+  <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/confirm-modal.js') }}"></script>
+</body>
+</html>
+

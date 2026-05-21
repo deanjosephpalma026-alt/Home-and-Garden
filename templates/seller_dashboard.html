@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Dashboard | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/confirm-modal.css') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+    .sidebar {
+      transition: transform 0.3s ease;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+    }
+    .nav-item.active {
+      background-color: #f9fafb;
+      color: #111827;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+  <div class="flex h-screen overflow-hidden">
+    
+    <aside class="sidebar fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100">
+      <div class="flex flex-col h-full">
+        
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="w-10 h-10">
+            <div>
+              <h2 class="text-lg font-light tracking-tight">Seller Portal</h2>
+              <p class="text-xs text-gray-500 font-light">Dashboard</p>
+            </div>
+          </div>
+        </div>
+
+        
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+          <a href="#dashboard" onclick="showSection('dashboard')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition cursor-pointer active text-sm font-light">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="#products" onclick="showSection('products')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition cursor-pointer text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            <span>Products</span>
+          </a>
+          <a href="#orders" onclick="showSection('orders')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition cursor-pointer text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <span>Orders</span>
+          </a>
+          <a href="#refunds" onclick="showSection('refunds')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition cursor-pointer text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Refund Requests</span>
+            {% if refund_requests %}
+              {% set pending_count = refund_requests|selectattr('status', 'equalto', 'pending')|list|length %}
+              {% if pending_count > 0 %}
+                <span class="ml-auto bg-red-500 text-white text-xs font-light px-2 py-0.5 rounded-full">{{ pending_count }}</span>
+              {% endif %}
+            {% endif %}
+          </a>
+          <a href="/seller_sales" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Sales Analytics</span>
+          </a>
+          <a href="/seller_profile" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <span>Profile</span>
+          </a>
+          <a href="{{ url_for('main.home') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span>View Shop</span>
+          </a>
+        </nav>
+
+        
+        <div class="p-4 border-t border-gray-100">
+          <a href="{{ url_for('auth.logout') }}" onclick="event.preventDefault(); const href = this.href; customConfirm('Are you sure you want to log out?', {title: 'Confirm Logout', type: 'warning', confirmText: 'Logout', confirmButtonClass: 'confirm-modal-button-danger'}).then(res => { if(res) window.location.href = href; });" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span>Logout</span>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
+
+    
+    <div class="flex-1 flex flex-col overflow-hidden">
+      
+      <header class="bg-white border-b border-gray-100 px-6 lg:px-8 py-4 flex items-center justify-between">
+        <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 hover:text-gray-900">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <h1 class="text-2xl font-light tracking-tight text-gray-900">Seller Dashboard</h1>
+        <div class="flex items-center gap-4">
+          <span class="text-sm font-light text-gray-600">Welcome, {{ session.get('seller_name', 'Seller') }}</span>
+        </div>
+      </header>
+
+      
+      <main class="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50 relative">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div data-flash-message="{{ message }}" data-flash-category="{{ category }}" style="display: none;"></div>
+          {% endfor %}
+        {% endwith %}
+
+        
+        <section id="dashboard" class="section">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-light text-gray-600 mb-2">Total Products</p>
+                  <p class="text-3xl font-light text-gray-900">{{ products|length }}</p>
+                </div>
+                <div class="bg-blue-50 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-light text-gray-600 mb-2">Total Orders</p>
+                  <p class="text-3xl font-light text-gray-900">{{ orders|length }}</p>
+                </div>
+                <div class="bg-gray-100 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-light text-gray-600 mb-2">Pending Orders</p>
+                  <p class="text-3xl font-light text-yellow-600">{{ orders|selectattr('payment_status', 'equalto', 'Pending')|list|length }}</p>
+                </div>
+                <div class="bg-yellow-50 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-light text-gray-600 mb-2">Completed Orders</p>
+                  <p class="text-3xl font-light text-green-600">{{ orders|selectattr('payment_status', 'equalto', 'Confirmed')|list|length }}</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-light text-gray-600 mb-2">Refunded Items</p>
+                  <p class="text-3xl font-light text-orange-600">{{ refund_requests|selectattr('status', 'equalto', 'approved')|list|length if refund_requests else 0 }}</p>
+                </div>
+                <div class="bg-orange-50 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        
+        <section id="products" class="section hidden">
+          <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+            <h2 class="text-xl font-light tracking-tight text-gray-900 mb-6">Add New Product</h2>
+            <form action="{{ url_for('seller.add_product') }}" method="POST" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
+              <input type="text" name="name" placeholder="Product Name" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition" required>
+              <input type="number" name="price" step="0.01" placeholder="Price (₱)" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition" required>
+              <input type="number" name="stock" placeholder="Stock Quantity" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition" required>
+              <select name="category" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition" required>
+                <option value="">Select Category</option>
+                <option value="Bedding and Bath">Bedding and Bath</option>
+                <option value="Furniture and Decor">Furniture and Decor</option>
+                <option value="Gardening Tools">Gardening Tools</option>
+                <option value="Home Improvement Tools">Home Improvement Tools</option>
+                <option value="Kitchen Appliances">Kitchen Appliances</option>
+                <option value="Outdoor Living">Outdoor Living</option>
+              </select>
+              <textarea name="description" placeholder="Description" rows="3" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition resize-none md:col-span-2"></textarea>
+              <input type="file" name="image" accept="image/*" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition md:col-span-2" required>
+              <button type="submit" class="md:col-span-2 bg-gray-900 text-white py-3.5 text-sm font-light hover:bg-gray-800 transition">
+                Add Product
+              </button>
+            </form>
+          </div>
+
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+              <h2 class="text-xl font-light tracking-tight text-gray-900">Your Products</h2>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Image</th>
+                    <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Name</th>
+                    <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Category</th>
+                    <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Price</th>
+                    <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Stock</th>
+                    <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  {% for p in products %}
+                  <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                      <img src="{{ url_for('static', filename=p.image) }}" alt="Product" class="w-16 h-16 object-cover border border-gray-200">
+                    </td>
+                    <td class="px-6 py-4 text-sm font-light text-gray-900">{{ p.name }}</td>
+                    <td class="px-6 py-4 text-sm font-light text-gray-600">{{ p.category }}</td>
+                    <td class="px-6 py-4 text-sm font-light text-gray-900">₱{{ p.price }}</td>
+                    <td class="px-6 py-4 text-sm font-light text-gray-600">{{ p.stock }}</td>
+                    <td class="px-6 py-4">
+                      <a href="/edit_product?product_id={{ p.id }}" 
+                         class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-light hover:bg-gray-50 transition">
+                        Edit
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        
+        <section id="orders" class="section hidden">
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+              <h2 class="text-xl font-light tracking-tight text-gray-900">Customer Orders</h2>
+            </div>
+            <div class="overflow-x-auto -mx-6 lg:mx-0">
+              <div class="inline-block min-w-full align-middle">
+                <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-light text-gray-700 whitespace-nowrap">Product</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-light text-gray-700 whitespace-nowrap">Buyer</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-light text-gray-700 whitespace-nowrap">Total</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-light text-gray-700 whitespace-nowrap">Payment</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-light text-gray-700 whitespace-nowrap">Status</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-light text-gray-700 whitespace-nowrap">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  {% for o in orders %}
+                  <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 sm:px-6 py-3 sm:py-4">
+                      <div class="flex items-center gap-2 sm:gap-3">
+                        <img src="{{ url_for('static', filename=o.product_image) }}" alt="{{ o.product_name }}" class="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded border border-gray-200">
+                        <div>
+                          <p class="text-xs sm:text-sm font-light text-gray-900">{{ o.product_name }}</p>
+                          <p class="text-xs text-gray-500">Order #{{ o.id }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4">
+                      <p class="text-xs sm:text-sm font-light text-gray-900">{{ o.user_name }}</p>
+                      <p class="text-xs text-gray-500 max-w-xs truncate">{{ o.address or 'N/A' }}</p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-light text-gray-900 whitespace-nowrap">₱{{ "%.2f"|format(o.total) }}</td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-light text-gray-600 whitespace-nowrap">{{ o.payment_method }}</td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4">
+                      <div class="flex flex-col gap-1">
+                        {% if o.payment_status == 'Refunded' %}
+                        <span class="px-3 py-1 rounded-full text-xs font-light inline-block w-fit bg-orange-100 text-orange-700">
+                          Refunded
+                        </span>
+                        {% elif o.payment_status == 'Cancelled' %}
+                        <span class="px-3 py-1 rounded-full text-xs font-light inline-block w-fit bg-red-100 text-red-700">
+                          Cancelled
+                        </span>
+                        {% else %}
+                        <span class="px-3 py-1 rounded-full text-xs font-light inline-block w-fit
+                          {% if o.payment_status == 'Pending' %} bg-yellow-100 text-yellow-700
+                          {% elif o.payment_status == 'Paid' %} bg-green-100 text-green-700
+                          {% elif o.payment_status == 'Confirmed' %} bg-gray-900 text-white
+                          {% else %} bg-gray-100 text-gray-700 {% endif %}">
+                          Payment: {{ o.payment_status }}
+                        </span>
+                        {% if o.delivery_status %}
+                        <span class="px-3 py-1 rounded-full text-xs font-light inline-block w-fit
+                          {% if o.delivery_status == 'pending' %} bg-gray-100 text-gray-700
+                          {% elif o.delivery_status == 'assigned' %} bg-blue-100 text-blue-700
+                          {% elif o.delivery_status == 'picked_up' %} bg-purple-100 text-purple-700
+                          {% elif o.delivery_status == 'in_transit' %} bg-indigo-100 text-indigo-700
+                          {% elif o.delivery_status == 'delivered' %} bg-green-100 text-green-700
+                          {% else %} bg-gray-100 text-gray-700 {% endif %}">
+                          Delivery: {{ o.delivery_status|replace('_', ' ')|title }}
+                        </span>
+                        {% endif %}
+                        {% if o.order_received and o.payment_status != 'Refunded' %}
+                        <span class="px-3 py-1 rounded-full text-xs font-light inline-block w-fit bg-emerald-100 text-emerald-700">
+                          ✓ Order Received
+                        </span>
+                        {% endif %}
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4">
+                      <div class="flex flex-col gap-2">
+                        {% if o.seller_confirmed != 1 and (o.payment_status == 'Pending' or o.payment_status == 'Paid') %}
+                        <form action="/confirm_order?order_id={{ o.id }}" method="POST">
+                          <button class="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-900 text-white text-xs sm:text-sm font-light hover:bg-gray-800 transition whitespace-nowrap">
+                            {% if o.payment_status == 'Paid' %}
+                            Confirm Order
+                            {% else %}
+                            Confirm
+                            {% endif %}
+                          </button>
+                        </form>
+                        {% if o.payment_status == 'Paid' %}
+                        <span class="text-xs text-green-600">✓ Payment received</span>
+                        {% endif %}
+                        {% else %}
+                        <span class="text-sm font-light text-gray-500">Confirmed</span>
+                        {% endif %}
+                        
+                        {% if o.delivery_status == 'delivered' and o.delivery_proof %}
+                        <button onclick="openDeliveryProofModal('{{ url_for('static', filename=o.delivery_proof) }}')" 
+                                class="inline-flex items-center gap-1 text-xs font-light text-blue-600 hover:text-blue-800 underline underline-offset-4">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                          </svg>
+                          View Proof of Delivery
+                        </button>
+                        {% if o.delivered_at %}
+                        <span class="text-xs text-gray-500">Delivered: {{ o.delivered_at.strftime('%b %d, %Y %I:%M %p') }}</span>
+                        {% endif %}
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        
+        <section id="refunds" class="section hidden">
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+              <h2 class="text-xl font-light tracking-tight text-gray-900">Refund Requests</h2>
+              <p class="text-sm text-gray-600 font-light mt-1">Manage customer refund requests</p>
+            </div>
+            {% if refund_requests %}
+            <div class="overflow-x-auto">
+              <div class="p-6 space-y-4">
+                {% for refund in refund_requests %}
+                <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+                  <div class="flex flex-col md:flex-row md:items-start gap-4">
+                    <div class="w-20 h-20 flex-shrink-0">
+                      <img src="{{ url_for('static', filename=refund.product_image) }}" 
+                           alt="{{ refund.product_name }}" 
+                           class="w-full h-full object-cover rounded border border-gray-200">
+                    </div>
+                    <div class="flex-1">
+                      <div class="flex flex-wrap items-start justify-between gap-4 mb-3">
+                        <div>
+                          <h3 class="text-sm font-light text-gray-900 mb-1">{{ refund.product_name }}</h3>
+                          <p class="text-xs text-gray-600 mb-1">Customer: {{ refund.user_name }}</p>
+                          <p class="text-xs text-gray-600 mb-1">Email: {{ refund.user_email }}</p>
+                          {% if refund.buyer_gcash_number %}
+                          <p class="text-xs text-green-600 mb-1 font-medium">📱 GCash/Maya: {{ refund.buyer_gcash_number }}</p>
+                          {% else %}
+                          <p class="text-xs text-orange-600 mb-1">⚠️ No GCash/Maya number provided</p>
+                          {% endif %}
+                          <p class="text-xs text-gray-600">Order ID: #{{ refund.order_id }}</p>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                          <span class="px-3 py-1 rounded-full text-xs font-light
+                            {% if refund.status == 'pending' %} bg-yellow-100 text-yellow-800
+                            {% elif refund.status == 'approved' %} bg-green-100 text-green-800
+                            {% else %} bg-red-100 text-red-800 {% endif %}">
+                            {{ refund.status|title }}
+                          </span>
+                          <p class="text-xs text-gray-600">Total: ₱{{ "%.2f"|format(refund.total) }}</p>
+                        </div>
+                      </div>
+                      {% if refund.evidence_file %}
+                      <div class="mb-3 p-3 bg-gray-50 rounded-lg">
+                        <p class="text-xs font-light text-gray-700 mb-2"><strong>Evidence:</strong></p>
+                        {% if refund.evidence_file.endswith(('.mp4', '.mov', '.avi', '.webm', '.mkv')) %}
+                        <video controls class="w-full max-w-md rounded border border-gray-200" style="max-height: 300px;">
+                          <source src="{{ url_for('static', filename=refund.evidence_file) }}" type="video/mp4">
+                          Your browser does not support the video tag.
+                        </video>
+                        {% else %}
+                        <img src="{{ url_for('static', filename=refund.evidence_file) }}" 
+                             alt="Refund Evidence" 
+                             class="w-full max-w-md rounded border border-gray-200 cursor-pointer hover:opacity-90 transition"
+                             onclick="openEvidenceModal('{{ url_for('static', filename=refund.evidence_file) }}', '{{ refund.evidence_file.split('.')[-1] }}')"
+                             style="max-height: 300px; object-fit: contain;">
+                        {% endif %}
+                        <p class="text-xs text-gray-500 mt-2">Click to view full size</p>
+                      </div>
+                      {% endif %}
+                      
+                      {% if refund.reason %}
+                      <div class="mb-3 p-3 bg-gray-50 rounded-lg">
+                        <p class="text-xs font-light text-gray-700 mb-1"><strong>Reason:</strong></p>
+                        <p class="text-xs text-gray-600 font-light">{{ refund.reason }}</p>
+                      </div>
+                      {% endif %}
+                      <div class="flex flex-wrap gap-2 text-xs text-gray-600 mb-3">
+                        <span>Quantity: {{ refund.quantity }}</span>
+                        <span>•</span>
+                        <span>Requested: {{ refund.created_at.strftime('%b %d, %Y %I:%M %p') if refund.created_at else 'N/A' }}</span>
+                      </div>
+                      {% if refund.rejection_reason %}
+                      <div class="mb-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                        <p class="text-xs font-light text-red-700 mb-1"><strong>Rejection Reason:</strong></p>
+                        <p class="text-xs text-red-600 font-light">{{ refund.rejection_reason }}</p>
+                      </div>
+                      {% endif %}
+                      
+                      {% if refund.refund_status %}
+                      <div class="mb-3">
+                        <p class="text-xs text-gray-600 mb-1">Refund Status:</p>
+                        <span class="px-3 py-1 rounded-full text-xs font-light
+                          {% if refund.refund_status == 'pending_pickup' %} bg-yellow-100 text-yellow-800
+                          {% elif refund.refund_status == 'picked_up' %} bg-blue-100 text-blue-800
+                          {% elif refund.refund_status == 'in_transit' %} bg-purple-100 text-purple-800
+                          {% elif refund.refund_status == 'completed' %} bg-green-100 text-green-800
+                          {% else %} bg-gray-100 text-gray-800 {% endif %}">
+                          {% if refund.refund_status == 'completed' or refund.refund_status == 'returned_to_seller' %}Refund Completed{% else %}{{ refund.refund_status|replace('_', ' ')|title }}{% endif %}
+                        </span>
+                        {% if refund.rider_name %}
+                        <p class="text-xs text-gray-600 mt-1">Rider: {{ refund.rider_name }}</p>
+                        {% elif refund.refund_status == 'pending_pickup' %}
+                        <p class="text-xs text-gray-500 mt-1">Waiting for rider to accept</p>
+                        {% endif %}
+                        {% if refund.picked_up_at %}
+                        <p class="text-xs text-gray-500 mt-1">Picked up: {{ refund.picked_up_at.strftime('%b %d, %Y %I:%M %p') if refund.picked_up_at else 'N/A' }}</p>
+                        {% endif %}
+                        {% if refund.returned_at %}
+                        <p class="text-xs text-gray-500 mt-1">Returned: {{ refund.returned_at.strftime('%b %d, %Y %I:%M %p') if refund.returned_at else 'N/A' }}</p>
+                        {% endif %}
+                      </div>
+                      {% endif %}
+                      
+                      {% if refund.status == 'pending' %}
+                      <div class="flex gap-2 mt-4">
+                        <form id="approve-refund-form-{{ refund.id }}" action="/approve_refund?refund_id={{ refund.id }}" method="POST">
+                          <button type="submit" 
+                                  class="px-4 py-2 bg-green-600 text-white text-sm font-light hover:bg-green-700 transition">
+                            Approve Refund
+                          </button>
+                        </form>
+                        <script>
+                          document.getElementById('approve-refund-form-{{ refund.id }}').addEventListener('submit', async function(e) {
+                            e.preventDefault();
+                            const result = await customConfirm(
+                              'Are you sure you want to approve this refund request? A rider will be assigned to pick up the item.',
+                              {
+                                title: 'Approve Refund Request',
+                                type: 'success',
+                                confirmText: 'Approve',
+                                cancelText: 'Cancel',
+                                confirmButtonClass: 'confirm-modal-button-success'
+                              }
+                            );
+                            if (result) {
+                              this.submit();
+                            }
+                          });
+                        </script>
+                        <button onclick="openRejectModal({{ refund.id }})" 
+                                class="px-4 py-2 bg-red-600 text-white text-sm font-light hover:bg-red-700 transition">
+                          Reject Refund
+                        </button>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+              <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p class="text-lg font-light text-gray-600 mb-2">No refund requests</p>
+              <p class="text-sm text-gray-500">You don't have any refund requests at the moment</p>
+            </div>
+            {% endif %}
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="evidenceModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-90">
+    <div class="relative max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
+      <button onclick="closeEvidenceModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full p-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+      <div id="evidenceContent" class="bg-white rounded-lg p-4">
+      </div>
+    </div>
+  </div>
+
+  <div id="deliveryProofModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6 relative">
+      <button onclick="closeDeliveryProofModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+      <h2 class="text-xl font-light tracking-tight text-gray-900 mb-4">Proof of Delivery</h2>
+      <div id="deliveryProofContent" class="flex justify-center">
+        <img id="deliveryProofImage" src="" alt="Proof of Delivery" class="max-w-full max-h-96 object-contain rounded border border-gray-200">
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button onclick="closeDeliveryProofModal()" class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-light hover:bg-gray-50 transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="rejectModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 relative">
+      <button onclick="closeRejectModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+      <h2 class="text-xl font-light tracking-tight text-gray-900 mb-4">Reject Refund Request</h2>
+      <form id="rejectForm" method="POST">
+        <input type="hidden" id="rejectRefundId" name="refund_id">
+        <div class="mb-4">
+          <label for="rejectionReason" class="block text-sm font-light text-gray-700 mb-2">Reason for Rejection <span class="text-gray-500">(Required)</span></label>
+          <textarea id="rejectionReason" name="rejection_reason" rows="4" 
+                    class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition resize-none"
+                    placeholder="Please provide a reason for rejecting this refund request..."
+                    required></textarea>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" onclick="closeRejectModal()" 
+                  class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 text-sm font-light hover:bg-gray-50 transition">
+            Cancel
+          </button>
+          <button type="submit" 
+                  class="flex-1 px-4 py-3 bg-red-600 text-white text-sm font-light hover:bg-red-700 transition">
+            Reject Refund
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openRejectModal(refundId) {
+      document.getElementById('rejectRefundId').value = refundId;
+      document.getElementById('rejectForm').action = '/reject_refund/' + refundId;
+      document.getElementById('rejectModal').classList.remove('hidden');
+    }
+
+    function closeRejectModal() {
+      document.getElementById('rejectModal').classList.add('hidden');
+      document.getElementById('rejectForm').reset();
+    }
+
+    function openEvidenceModal(filePath, fileType) {
+      const modal = document.getElementById('evidenceModal');
+      const content = document.getElementById('evidenceContent');
+      
+      if (fileType === 'mp4' || fileType === 'mov' || fileType === 'avi' || fileType === 'webm' || fileType === 'mkv') {
+        content.innerHTML = `
+          <video controls class="w-full rounded" style="max-height: 80vh;">
+            <source src="${filePath}" type="video/${fileType}">
+            Your browser does not support the video tag.
+          </video>
+        `;
+      } else {
+        content.innerHTML = `
+          <img src="${filePath}" alt="Evidence" class="w-full rounded" style="max-height: 80vh; object-fit: contain;">
+        `;
+      }
+      
+      modal.classList.remove('hidden');
+    }
+
+    function closeEvidenceModal() {
+      document.getElementById('evidenceModal').classList.add('hidden');
+      document.getElementById('evidenceContent').innerHTML = '';
+    }
+
+    function openDeliveryProofModal(imagePath) {
+      document.getElementById('deliveryProofImage').src = imagePath;
+      document.getElementById('deliveryProofModal').classList.remove('hidden');
+    }
+
+    function closeDeliveryProofModal() {
+      document.getElementById('deliveryProofModal').classList.add('hidden');
+      document.getElementById('deliveryProofImage').src = '';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('rejectModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeRejectModal();
+      }
+    });
+
+    document.getElementById('evidenceModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeEvidenceModal();
+      }
+    });
+
+    document.getElementById('deliveryProofModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeDeliveryProofModal();
+      }
+    });
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('hidden');
+    }
+
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.add('hidden');
+      });
+      document.getElementById(sectionId).classList.remove('hidden');
+      
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        item.classList.add('text-gray-700');
+        item.classList.remove('text-gray-900');
+      });
+      event.currentTarget.classList.add('active');
+      event.currentTarget.classList.remove('text-gray-700');
+      event.currentTarget.classList.add('text-gray-900');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      showSection('dashboard');
+    });
+  </script>
+  <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/confirm-modal.js') }}"></script>
+
+</body>
+</html>

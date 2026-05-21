@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rider Dashboard | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/confirm-modal.css') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+    .sidebar {
+      transition: transform 0.3s ease;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+    }
+    .nav-item.active {
+      background-color: #f9fafb;
+      color: #111827;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+  <div class="flex h-screen overflow-hidden">
+    
+    <aside class="sidebar fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100">
+      <div class="flex flex-col h-full">
+        
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="w-10 h-10">
+            <div>
+              <h2 class="text-lg font-light tracking-tight">Rider Portal</h2>
+              <p class="text-xs text-gray-500 font-light">Dashboard</p>
+            </div>
+          </div>
+        </div>
+
+        
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+          <a href="#dashboard" onclick="showSection('dashboard')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition cursor-pointer active text-sm font-light">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="#available-orders" onclick="showSection('available-orders')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition cursor-pointer text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <span>Available Orders</span>
+          </a>
+          <a href="#deliveries" onclick="showSection('deliveries')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition cursor-pointer text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>My Deliveries</span>
+          </a>
+          <a href="{{ url_for('rider.rider_commissions') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Commissions</span>
+          </a>
+          <a href="{{ url_for('main.home') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span>View Shop</span>
+          </a>
+        </nav>
+
+        
+        <div class="p-4 border-t border-gray-100">
+          <a href="{{ url_for('auth.logout') }}" onclick="event.preventDefault(); const href = this.href; customConfirm('Are you sure you want to log out?', {title: 'Confirm Logout', type: 'warning', confirmText: 'Logout', confirmButtonClass: 'confirm-modal-button-danger'}).then(res => { if(res) window.location.href = href; });" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span>Logout</span>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
+
+    
+    <div class="flex-1 flex flex-col overflow-hidden">
+      
+      <header class="bg-white border-b border-gray-100 px-6 lg:px-8 py-4 flex items-center justify-between">
+        <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 hover:text-gray-900">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <h1 class="text-2xl font-light tracking-tight text-gray-900">Rider Dashboard</h1>
+        <div class="flex items-center gap-4">
+          <span class="text-sm font-light text-gray-600">Welcome, {{ session.get('rider_name', 'Rider') }}</span>
+        </div>
+      </header>
+
+      
+      <main class="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="mb-6 p-4 text-sm font-light
+              {% if category == 'success' %} bg-gray-50 text-gray-900 border border-gray-200
+              {% elif category == 'error' %} bg-red-50 text-red-900 border border-red-200 {% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        
+        <section id="dashboard" class="section">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-light text-gray-600 mb-2">Total Orders</p>
+                  <p class="text-3xl font-light text-gray-900">{{ delivered_count + in_progress_count + pending_count }}</p>
+                </div>
+                <div class="bg-blue-50 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-light text-gray-600 mb-2">Pending</p>
+                  <p class="text-3xl font-light text-yellow-600">{{ pending_count }}</p>
+                </div>
+                <div class="bg-yellow-50 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-light text-gray-600 mb-2">In Progress</p>
+                  <p class="text-3xl font-light text-purple-600">{{ in_progress_count }}</p>
+                </div>
+                <div class="bg-purple-50 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-light text-gray-600 mb-2">Delivered</p>
+                  <p class="text-3xl font-light text-green-600">{{ delivered_count }}</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        
+        <section id="available-orders" class="section hidden">
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+              <h2 class="text-xl font-light tracking-tight text-gray-900">Available Orders</h2>
+            </div>
+            {% if pending_orders %}
+            <div class="divide-y divide-gray-100">
+              {% for order in pending_orders %}
+              <div class="p-6 hover:bg-gray-50 transition">
+                <div class="flex items-start gap-6">
+                  {% if order.product_image %}
+                  <img src="{{ url_for('static', filename=order.product_image) }}" 
+                       alt="{{ order.product_name }}" 
+                       class="w-24 h-24 object-cover border border-gray-200">
+                  {% endif %}
+                  <div class="flex-1">
+                    <div class="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 class="text-lg font-light text-gray-900 mb-1">{{ order.product_name }}</h3>
+                        <p class="text-sm font-light text-gray-600">Quantity: {{ order.quantity }} • ₱{{ "%.2f"|format(order.total) }}</p>
+                      </div>
+                      <form action="/accept_order?order_id={{ order.id }}" method="POST" class="inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition">
+                          Accept Order
+                        </button>
+                      </form>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="border border-gray-200 p-4 rounded-lg">
+                        <h4 class="text-sm font-light text-gray-600 mb-2">Pickup From</h4>
+                        <p class="text-sm font-light text-gray-900">{{ order.shop_name or 'Shop' }}</p>
+                        <p class="text-sm font-light text-gray-600">{{ order.seller_name }}</p>
+                        <p class="text-sm font-light text-gray-500 mt-1">{{ order.pickup_address or 'Address not available' }}</p>
+                        <p class="text-sm font-light text-gray-500 mt-1">{{ order.seller_contact or 'N/A' }}</p>
+                      </div>
+                      <div class="border border-gray-200 p-4 rounded-lg">
+                        <h4 class="text-sm font-light text-gray-600 mb-2">Deliver To</h4>
+                        <p class="text-sm font-light text-gray-900">{{ order.customer_name }}</p>
+                        <p class="text-sm font-light text-gray-500 mt-1">{{ order.delivery_address or order.address or 'Address not available' }}</p>
+                        <p class="text-sm font-light text-gray-500 mt-1">{{ order.customer_contact or order.customer_email or 'N/A' }}</p>
+                      </div>
+                    </div>
+                    <div class="mt-4 flex items-center gap-4 text-sm font-light text-gray-500">
+                      <span>Payment: {{ order.payment_method }}</span>
+                      <span>Order Date: {{ order.order_date.strftime('%Y-%m-%d %H:%M') if order.order_date else 'N/A' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+              <p class="text-sm font-light text-gray-500">No available orders at the moment.</p>
+            </div>
+            {% endif %}
+            
+          </div>
+        </section>
+
+        
+        <section id="deliveries" class="section hidden">
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+              <h2 class="text-xl font-light tracking-tight text-gray-900 mb-4">My Deliveries</h2>
+              
+              <div class="flex gap-2 border-b border-gray-200">
+                <button onclick="showDeliveryTab('pending')" class="delivery-tab px-4 py-2 text-sm font-light border-b-2 border-gray-900 text-gray-900" data-tab="pending">
+                  Pending ({{ deliveries_pending|length }})
+                </button>
+                <button onclick="showDeliveryTab('in_progress')" class="delivery-tab px-4 py-2 text-sm font-light border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="in_progress">
+                  In Progress ({{ deliveries_in_progress|length }})
+                </button>
+                <button onclick="showDeliveryTab('delivered')" class="delivery-tab px-4 py-2 text-sm font-light border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="delivered">
+                  Delivered ({{ deliveries_delivered|length }})
+                </button>
+              </div>
+            </div>
+            
+            <div id="delivery-pending" class="delivery-tab-content">
+              {% if deliveries_pending %}
+              <div class="divide-y divide-gray-100">
+                {% for delivery in deliveries_pending %}
+              <div class="p-6 hover:bg-gray-50 transition">
+                <div class="flex items-start gap-6">
+                  {% if delivery.product_image %}
+                  <img src="{{ url_for('static', filename=delivery.product_image) }}" 
+                       alt="{{ delivery.product_name }}" 
+                       class="w-24 h-24 object-cover border border-gray-200">
+                  {% endif %}
+                  <div class="flex-1">
+                    <div class="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 class="text-lg font-light text-gray-900 mb-1">{{ delivery.product_name }}</h3>
+                        <p class="text-sm font-light text-gray-600">Quantity: {{ delivery.quantity }} • ₱{{ "%.2f"|format(delivery.total) }}</p>
+                        <div class="mt-2">
+                          <span class="px-3 py-1 rounded-full text-xs font-light
+                            {% if delivery.delivery_status == 'assigned' %} bg-gray-100 text-gray-700
+                            {% elif delivery.delivery_status == 'picked_up' %} bg-gray-100 text-gray-700
+                            {% elif delivery.delivery_status == 'in_transit' %} bg-gray-100 text-gray-700
+                            {% elif delivery.delivery_status == 'delivered' %} bg-gray-900 text-white
+                            {% else %} bg-gray-100 text-gray-700 {% endif %}">
+                            {{ delivery.delivery_status.replace('_', ' ').title() }}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        {% if delivery.delivery_status == 'assigned' %}
+                        <form action="/update_delivery_status?order_id={{ delivery.id }}" method="POST" class="inline">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="delivery_status" value="picked_up">
+                          <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition">
+                            Mark as Picked Up
+                          </button>
+                        </form>
+                        {% endif %}
+                        {% if delivery.delivery_status == 'picked_up' %}
+                        <form action="/update_delivery_status?order_id={{ delivery.id }}" method="POST" class="inline">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="delivery_status" value="in_transit">
+                          <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition">
+                            Mark as In Transit
+                          </button>
+                        </form>
+                        {% endif %}
+                        {% if delivery.delivery_status == 'in_transit' or delivery.delivery_status == 'picked_up' %}
+                        <button type="button" onclick="openDeliveryProofModal({{ delivery.id }})" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-light hover:bg-green-700 transition">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          </svg>
+                          Mark as Delivered
+                        </button>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="border border-gray-200 p-4 rounded-lg">
+                        <h4 class="text-sm font-light text-gray-600 mb-2">Pickup From</h4>
+                        <p class="text-sm font-light text-gray-900">{{ delivery.shop_name or 'Shop' }}</p>
+                        <p class="text-sm font-light text-gray-600">{{ delivery.seller_name }}</p>
+                        <p class="text-sm font-light text-gray-500 mt-1">{{ delivery.pickup_address or 'Address not available' }}</p>
+                        <p class="text-sm font-light text-gray-500 mt-1">
+                          <a href="tel:{{ delivery.seller_contact }}" class="hover:underline">{{ delivery.seller_contact or 'N/A' }}</a>
+                        </p>
+                        {% if delivery.picked_up_at %}
+                        <p class="text-xs font-light text-gray-400 mt-2">Picked up: {{ delivery.picked_up_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        {% endif %}
+                      </div>
+                      <div class="border border-gray-200 p-4 rounded-lg">
+                        <h4 class="text-sm font-light text-gray-600 mb-2">Deliver To</h4>
+                        <p class="text-sm font-light text-gray-900">{{ delivery.customer_name }}</p>
+                        <p class="text-sm font-light text-gray-500 mt-1">{{ delivery.delivery_address or delivery.address or 'Address not available' }}</p>
+                        <p class="text-sm font-light text-gray-500 mt-1">
+                          <a href="tel:{{ delivery.customer_contact }}" class="hover:underline">{{ delivery.customer_contact or delivery.customer_email or 'N/A' }}</a>
+                        </p>
+                        {% if delivery.delivered_at %}
+                        <p class="text-xs font-light text-gray-400 mt-2">Delivered: {{ delivery.delivered_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="mt-4 flex items-center gap-4 text-sm font-light text-gray-500">
+                      <span>Payment: {{ delivery.payment_method }}</span>
+                      <span>Order Date: {{ delivery.order_date.strftime('%Y-%m-%d %H:%M') if delivery.order_date else 'N/A' }}</span>
+                      {% if delivery.assigned_at %}
+                      <span>Assigned: {{ delivery.assigned_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+              </div>
+              {% else %}
+              <div class="p-12 text-center">
+                <p class="text-sm font-light text-gray-500">No pending deliveries.</p>
+              </div>
+              {% endif %}
+            </div>
+            
+            <div id="delivery-in_progress" class="delivery-tab-content hidden">
+              {% if deliveries_in_progress %}
+              <div class="divide-y divide-gray-100">
+                {% for delivery in deliveries_in_progress %}
+                <div class="p-6 hover:bg-gray-50 transition">
+                  <div class="flex items-start gap-6">
+                    {% if delivery.product_image %}
+                    <img src="{{ url_for('static', filename=delivery.product_image) }}" 
+                         alt="{{ delivery.product_name }}" 
+                         class="w-24 h-24 object-cover border border-gray-200">
+                    {% endif %}
+                    <div class="flex-1">
+                      <div class="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 class="text-lg font-light text-gray-900 mb-1">{{ delivery.product_name }}</h3>
+                          <p class="text-sm font-light text-gray-600">Quantity: {{ delivery.quantity }} • ₱{{ "%.2f"|format(delivery.total) }}</p>
+                          <div class="mt-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-light bg-blue-100 text-blue-800">
+                              {{ delivery.delivery_status.replace('_', ' ').title() }}
+                            </span>
+                          </div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                          {% if delivery.delivery_status == 'assigned' %}
+                          <form action="/update_delivery_status?order_id={{ delivery.id }}" method="POST" class="inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="delivery_status" value="picked_up">
+                            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition">
+                              Mark as Picked Up
+                            </button>
+                          </form>
+                          {% endif %}
+                          {% if delivery.delivery_status == 'picked_up' %}
+                          <form action="/update_delivery_status?order_id={{ delivery.id }}" method="POST" class="inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="delivery_status" value="in_transit">
+                            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition">
+                              Mark as In Transit
+                            </button>
+                          </form>
+                          {% endif %}
+                          {% if delivery.delivery_status == 'in_transit' or delivery.delivery_status == 'picked_up' %}
+                          <button type="button" onclick="openDeliveryProofModal({{ delivery.id }})" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-light hover:bg-green-700 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Mark as Delivered
+                          </button>
+                          {% endif %}
+                        </div>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                          <h4 class="text-sm font-light text-gray-600 mb-2">Pickup From</h4>
+                          <p class="text-sm font-light text-gray-900">{{ delivery.shop_name or 'Shop' }}</p>
+                          <p class="text-sm font-light text-gray-600">{{ delivery.seller_name }}</p>
+                          <p class="text-sm font-light text-gray-500 mt-1">{{ delivery.pickup_address or 'Address not available' }}</p>
+                          <p class="text-sm font-light text-gray-500 mt-1">
+                            <a href="tel:{{ delivery.seller_contact }}" class="hover:underline">{{ delivery.seller_contact or 'N/A' }}</a>
+                          </p>
+                          {% if delivery.picked_up_at %}
+                          <p class="text-xs font-light text-gray-400 mt-2">Picked up: {{ delivery.picked_up_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                          {% endif %}
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                          <h4 class="text-sm font-light text-gray-600 mb-2">Deliver To</h4>
+                          <p class="text-sm font-light text-gray-900">{{ delivery.customer_name }}</p>
+                          <p class="text-sm font-light text-gray-500 mt-1">{{ delivery.delivery_address or delivery.address or 'Address not available' }}</p>
+                          <p class="text-sm font-light text-gray-500 mt-1">
+                            <a href="tel:{{ delivery.customer_contact }}" class="hover:underline">{{ delivery.customer_contact or delivery.customer_email or 'N/A' }}</a>
+                          </p>
+                        </div>
+                      </div>
+                      <div class="mt-4 flex items-center gap-4 text-sm font-light text-gray-500">
+                        <span>Payment: {{ delivery.payment_method }}</span>
+                        <span>Order Date: {{ delivery.order_date.strftime('%Y-%m-%d %H:%M') if delivery.order_date else 'N/A' }}</span>
+                        {% if delivery.assigned_at %}
+                        <span>Assigned: {{ delivery.assigned_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="p-12 text-center">
+                <p class="text-sm font-light text-gray-500">No in-progress deliveries.</p>
+              </div>
+              {% endif %}
+            </div>
+            
+            <div id="delivery-delivered" class="delivery-tab-content hidden">
+              {% if deliveries_delivered %}
+              <div class="divide-y divide-gray-100">
+                {% for delivery in deliveries_delivered %}
+                <div class="p-6 hover:bg-gray-50 transition">
+                  <div class="flex items-start gap-6">
+                    {% if delivery.product_image %}
+                    <img src="{{ url_for('static', filename=delivery.product_image) }}" 
+                         alt="{{ delivery.product_name }}" 
+                         class="w-24 h-24 object-cover border border-gray-200">
+                    {% endif %}
+                    <div class="flex-1">
+                      <div class="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 class="text-lg font-light text-gray-900 mb-1">{{ delivery.product_name }}</h3>
+                          <p class="text-sm font-light text-gray-600">Quantity: {{ delivery.quantity }} • ₱{{ "%.2f"|format(delivery.total) }}</p>
+                          <div class="mt-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-light bg-green-100 text-green-800">
+                              Delivered
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                          <h4 class="text-sm font-light text-gray-600 mb-2">Pickup From</h4>
+                          <p class="text-sm font-light text-gray-900">{{ delivery.shop_name or 'Shop' }}</p>
+                          <p class="text-sm font-light text-gray-600">{{ delivery.seller_name }}</p>
+                          <p class="text-sm font-light text-gray-500 mt-1">{{ delivery.pickup_address or 'Address not available' }}</p>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                          <h4 class="text-sm font-light text-gray-600 mb-2">Delivered To</h4>
+                          <p class="text-sm font-light text-gray-900">{{ delivery.customer_name }}</p>
+                          <p class="text-sm font-light text-gray-500 mt-1">{{ delivery.delivery_address or delivery.address or 'Address not available' }}</p>
+                          {% if delivery.delivered_at %}
+                          <p class="text-xs font-light text-green-600 mt-2 font-medium">✓ Delivered: {{ delivery.delivered_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                          {% endif %}
+                        </div>
+                      </div>
+                      
+                      {% if delivery.delivery_proof %}
+                      <div class="mt-4 border border-gray-200 p-4 rounded-lg">
+                        <h4 class="text-sm font-light text-gray-600 mb-2 flex items-center gap-2">
+                          <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                          Proof of Delivery
+                        </h4>
+                        <a href="{{ url_for('static', filename=delivery.delivery_proof) }}" target="_blank" class="block">
+                          <img src="{{ url_for('static', filename=delivery.delivery_proof) }}" 
+                               alt="Delivery Proof" 
+                               class="w-full max-w-sm h-48 object-cover rounded-lg border border-gray-200 hover:opacity-90 transition">
+                        </a>
+                        <p class="text-xs font-light text-gray-400 mt-2">Click to view full image</p>
+                      </div>
+                      {% endif %}
+                      
+                      <div class="mt-4 flex items-center gap-4 text-sm font-light text-gray-500">
+                        <span>Payment: {{ delivery.payment_method }}</span>
+                        <span>Order Date: {{ delivery.order_date.strftime('%Y-%m-%d %H:%M') if delivery.order_date else 'N/A' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="p-12 text-center">
+                <p class="text-sm font-light text-gray-500">No delivered orders yet.</p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="deliveryProofModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg max-w-md w-full">
+      <div class="p-6 border-b border-gray-100">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xl font-light tracking-tight text-gray-900">Upload Proof of Delivery</h3>
+          <button onclick="closeDeliveryProofModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <form id="deliveryProofForm" action="" method="POST" enctype="multipart/form-data" class="p-6">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="delivery_status" value="delivered">
+        
+        <div class="mb-6">
+          <p class="text-sm font-light text-gray-600 mb-4">
+            Please upload a photo showing proof that the order has been delivered to the customer's address.
+          </p>
+          
+          <div id="proofPreviewContainer" class="mb-4 hidden">
+            <img id="proofPreview" src="" alt="Delivery Proof Preview" class="w-full h-48 object-cover rounded-lg border border-gray-200">
+          </div>
+          
+          <label for="delivery_proof" class="block cursor-pointer">
+            <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition">
+              <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <p class="text-sm font-light text-gray-600 mb-2">Click to upload or drag and drop</p>
+              <p class="text-xs font-light text-gray-400">JPG, PNG or GIF (Max 5MB)</p>
+            </div>
+            <input type="file" name="delivery_proof" id="delivery_proof" accept="image/*" class="hidden" required onchange="previewDeliveryProof(event)">
+          </label>
+          
+          <p id="proofError" class="text-sm text-red-600 mt-2 hidden">Please upload a proof of delivery photo.</p>
+        </div>
+        
+        <div class="flex gap-3">
+          <button type="button" onclick="closeDeliveryProofModal()" class="flex-1 border border-gray-300 text-gray-700 py-3 text-sm font-light hover:bg-gray-50 transition rounded">
+            Cancel
+          </button>
+          <button type="submit" id="submitDeliveryProof" class="flex-1 bg-green-600 text-white py-3 text-sm font-light hover:bg-green-700 transition rounded disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <span class="flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+              </svg>
+              Confirm Delivery
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let currentOrderId = null;
+
+    function openDeliveryProofModal(orderId) {
+      currentOrderId = orderId;
+      const modal = document.getElementById('deliveryProofModal');
+      const form = document.getElementById('deliveryProofForm');
+      form.action = `/rider/update_status/${orderId}`;
+      
+      // Reset form
+      document.getElementById('delivery_proof').value = '';
+      document.getElementById('proofPreviewContainer').classList.add('hidden');
+      document.getElementById('uploadArea').classList.remove('hidden');
+      document.getElementById('proofError').classList.add('hidden');
+      document.getElementById('submitDeliveryProof').disabled = true;
+      
+      modal.classList.remove('hidden');
+    }
+
+    function closeDeliveryProofModal() {
+      const modal = document.getElementById('deliveryProofModal');
+      modal.classList.add('hidden');
+      currentOrderId = null;
+    }
+
+    function previewDeliveryProof(event) {
+      const file = event.target.files[0];
+      if (file) {
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('File size must be less than 5MB');
+          event.target.value = '';
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('proofPreview');
+          const previewContainer = document.getElementById('proofPreviewContainer');
+          const uploadArea = document.getElementById('uploadArea');
+          
+          preview.src = e.target.result;
+          previewContainer.classList.remove('hidden');
+          uploadArea.classList.add('hidden');
+          document.getElementById('proofError').classList.add('hidden');
+          document.getElementById('submitDeliveryProof').disabled = false;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Form validation
+    document.getElementById('deliveryProofForm').addEventListener('submit', function(e) {
+      const fileInput = document.getElementById('delivery_proof');
+      if (!fileInput.files || !fileInput.files[0]) {
+        e.preventDefault();
+        document.getElementById('proofError').classList.remove('hidden');
+        return false;
+      }
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('deliveryProofModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeDeliveryProofModal();
+      }
+    });
+
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('hidden');
+    }
+
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.add('hidden');
+      });
+      document.getElementById(sectionId).classList.remove('hidden');
+      
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        item.classList.add('text-gray-700');
+        item.classList.remove('text-gray-900');
+      });
+      event.currentTarget.classList.add('active');
+      event.currentTarget.classList.remove('text-gray-700');
+      event.currentTarget.classList.add('text-gray-900');
+    }
+
+    function showDeliveryTab(tab) {
+      document.querySelectorAll('.delivery-tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      
+      document.querySelectorAll('.delivery-tab').forEach(btn => {
+        btn.classList.remove('border-gray-900', 'text-gray-900');
+        btn.classList.add('border-transparent', 'text-gray-600');
+      });
+      
+      document.getElementById('delivery-' + tab).classList.remove('hidden');
+      
+      const activeBtn = document.querySelector(`[onclick="showDeliveryTab('${tab}')"]`);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-gray-600');
+        activeBtn.classList.add('border-gray-900', 'text-gray-900');
+      }
+      
+      // Add active state to selected tab
+      const activeTab = document.querySelector(`.delivery-tab[data-tab="${tab}"]`);
+      if (activeTab) {
+        activeTab.classList.remove('border-transparent', 'text-gray-600');
+        activeTab.classList.add('border-gray-900', 'text-gray-900');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      showSection('dashboard');
+    });
+  </script>
+  <script src="{{ url_for('static', filename='js/confirm-modal.js') }}"></script>
+</body>
+</html>

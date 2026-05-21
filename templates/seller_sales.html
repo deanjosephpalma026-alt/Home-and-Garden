@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Analytics | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+  
+  <header class="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <a href="{{ url_for('seller.seller_dashboard') }}" class="flex items-center gap-3 group">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Home And Garden" class="w-10 h-10 transition-transform group-hover:scale-105">
+          <span class="text-xl font-light tracking-tight">Home And Garden</span>
+        </a>
+        <nav class="hidden lg:flex items-center gap-10">
+          <a href="{{ url_for('seller.seller_dashboard') }}" class="text-sm font-light text-gray-700 hover:text-gray-900">Dashboard</a>
+          <a href="/seller_sales" class="text-sm font-light text-gray-900 border-b border-gray-900">Sales</a>
+          <a href="/seller_profile" class="text-sm font-light text-gray-700 hover:text-gray-900">Profile</a>
+          <a href="{{ url_for('auth.logout') }}" onclick="event.preventDefault(); const href = this.href; customConfirm('Are you sure you want to log out?', {title: 'Confirm Logout', type: 'warning', confirmText: 'Logout', confirmButtonClass: 'confirm-modal-button-danger'}).then(res => { if(res) window.location.href = href; });" class="text-sm font-light text-gray-700 hover:text-gray-900">Logout</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  
+  <section class="py-16 lg:py-24">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="mb-12">
+        <h1 class="text-4xl lg:text-5xl font-light tracking-tight text-gray-900 mb-4">
+          Sales Analytics
+        </h1>
+        <p class="text-sm text-gray-600 font-light">
+          Track your sales performance and earnings
+        </p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="mb-6 p-4 text-sm font-light
+              {% if category == 'success' %} bg-gray-50 text-gray-900 border border-gray-200
+              {% elif category == 'error' %} bg-red-50 text-red-900 border border-red-200
+              {% else %} bg-yellow-50 text-yellow-900 border border-yellow-200 {% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      
+      <div class="mb-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <form method="GET" action="/seller_sales" class="flex gap-2 items-center">
+          <label class="text-sm font-light text-gray-600">From:</label>
+          <input type="date" name="start_date" value="{{ start_date or '' }}" class="px-3 py-2 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+          <label class="text-sm font-light text-gray-600">To:</label>
+          <input type="date" name="end_date" value="{{ end_date or '' }}" class="px-3 py-2 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+          <button type="submit" class="px-4 py-2 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition">
+            Filter
+          </button>
+          <a href="/seller_sales" class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-light hover:bg-gray-50 transition">
+            Clear
+          </a>
+        </form>
+      </div>
+
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+        <div class="bg-white border border-gray-200 p-6">
+          <p class="text-xs font-light text-gray-600 mb-2">Total Orders</p>
+          <p class="text-3xl font-light text-gray-900">{{ total_orders }}</p>
+        </div>
+        <div class="bg-white border border-gray-200 p-6">
+          <p class="text-xs font-light text-gray-600 mb-2">Total Sales</p>
+          <p class="text-3xl font-light text-gray-900">₱{{ "%.2f"|format(total_sales) }}</p>
+        </div>
+        <div class="bg-white border border-gray-200 p-6">
+          <p class="text-xs font-light text-gray-600 mb-2">Your Earnings (90%)</p>
+          <p class="text-3xl font-light text-green-600">₱{{ "%.2f"|format(total_earnings) }}</p>
+        </div>
+        <div class="bg-white border border-gray-200 p-6">
+          <p class="text-xs font-light text-gray-600 mb-2">Admin Commission (10%)</p>
+          <p class="text-3xl font-light text-gray-600">₱{{ "%.2f"|format(total_commission) }}</p>
+        </div>
+      </div>
+
+      
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-12">
+        <div class="p-6 border-b border-gray-100">
+          <h2 class="text-xl font-light tracking-tight text-gray-900">Sales Trend</h2>
+          <p class="text-xs font-light text-gray-600 mt-1">Visual representation of your sales performance</p>
+        </div>
+        <div class="p-6">
+          <canvas id="salesChart" style="max-height: 400px;"></canvas>
+        </div>
+      </div>
+
+      
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-100">
+          <h2 class="text-xl font-light tracking-tight text-gray-900">{{ period_label }} Sales Report</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Date</th>
+                <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Orders</th>
+                <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Total Sales</th>
+                <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Your Earnings</th>
+                <th class="px-6 py-4 text-left text-sm font-light text-gray-700">Admin Commission</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              {% if sales_data %}
+                {% for sale in sales_data %}
+                <tr class="hover:bg-gray-50 transition">
+                  <td class="px-6 py-4 text-sm font-light text-gray-900">
+                    {% if period == 'year' %}
+                      {{ sale.date }}
+                    {% elif period == 'month' %}
+                      {{ sale.date }}
+                    {% elif period == 'custom' %}
+                      {{ sale.date.strftime('%b %d, %Y') if sale.date else 'N/A' }}
+                    {% else %}
+                      {{ sale.date.strftime('%b %d, %Y') if sale.date else 'N/A' }}
+                    {% endif %}
+                  </td>
+                  <td class="px-6 py-4 text-sm font-light text-gray-900">{{ sale.order_count }}</td>
+                  <td class="px-6 py-4 text-sm font-light text-gray-900">₱{{ "%.2f"|format(sale.total_sales or 0) }}</td>
+                  <td class="px-6 py-4 text-sm font-light text-green-600">₱{{ "%.2f"|format(sale.seller_earnings or 0) }}</td>
+                  <td class="px-6 py-4 text-sm font-light text-gray-600">₱{{ "%.2f"|format(sale.admin_commission or 0) }}</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="px-6 py-12 text-center text-sm font-light text-gray-500">
+                    No sales data available for this period
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <footer class="border-t border-gray-100 py-12 mt-24">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center text-sm text-gray-500 font-light">
+      <p>&copy; 2024 Home And Garden. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Prepare chart data
+    const salesData = {{ sales_data | tojson }};
+    const period = '{{ period }}';
+    
+    // Reverse data to show chronological order (oldest to newest) except for custom range
+    const reversedData = period === 'custom' ? salesData : [...salesData].reverse();
+    
+    // Extract labels (dates) and data points
+    const labels = reversedData.map(item => {
+      const date = item.date;
+      if (typeof date === 'string') {
+        // For month and year periods
+        if (date.includes('-')) {
+          // Format YYYY-MM to "Jan 2024"
+          const [year, month] = date.split('-');
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          return `${monthNames[parseInt(month) - 1]} ${year}`;
+        }
+        // For year only
+        return date;
+      } else {
+        // For daily period (date object)
+        const d = new Date(date);
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${monthNames[d.getMonth()]} ${d.getDate()}`;
+      }
+    });
+    
+    const totalSales = reversedData.map(item => parseFloat(item.total_sales || 0));
+    const sellerEarnings = reversedData.map(item => parseFloat(item.seller_earnings || 0));
+    const orderCounts = reversedData.map(item => parseInt(item.order_count || 0));
+
+    // Create the chart
+    const ctx = document.getElementById('salesChart');
+    if (ctx && salesData.length > 0) {
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Total Sales (₱)',
+              data: totalSales,
+              borderColor: 'rgb(17, 24, 39)',
+              backgroundColor: 'rgba(17, 24, 39, 0.1)',
+              tension: 0.4,
+              fill: true,
+              yAxisID: 'y',
+            },
+            {
+              label: 'Your Earnings (₱)',
+              data: sellerEarnings,
+              borderColor: 'rgb(34, 197, 94)',
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              tension: 0.4,
+              fill: true,
+              yAxisID: 'y',
+            },
+            {
+              label: 'Number of Orders',
+              data: orderCounts,
+              borderColor: 'rgb(59, 130, 246)',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4,
+              fill: false,
+              yAxisID: 'y1',
+              borderDash: [5, 5],
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 15,
+                font: {
+                  family: 'Inter',
+                  size: 12,
+                  weight: '300'
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: {
+                family: 'Inter',
+                size: 12,
+                weight: '400'
+              },
+              bodyFont: {
+                family: 'Inter',
+                size: 11,
+                weight: '300'
+              },
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.dataset.label.includes('Orders')) {
+                    label += context.parsed.y;
+                  } else {
+                    label += '₱' + context.parsed.y.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                font: {
+                  family: 'Inter',
+                  size: 11,
+                  weight: '300'
+                },
+                color: '#6B7280'
+              }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              },
+              ticks: {
+                font: {
+                  family: 'Inter',
+                  size: 11,
+                  weight: '300'
+                },
+                color: '#6B7280',
+                callback: function(value) {
+                  return '₱' + value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+              },
+              title: {
+                display: true,
+                text: 'Amount (₱)',
+                font: {
+                  family: 'Inter',
+                  size: 11,
+                  weight: '400'
+                },
+                color: '#6B7280'
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              beginAtZero: true,
+              grid: {
+                drawOnChartArea: false,
+              },
+              ticks: {
+                font: {
+                  family: 'Inter',
+                  size: 11,
+                  weight: '300'
+                },
+                color: '#6B7280'
+              },
+              title: {
+                display: true,
+                text: 'Orders',
+                font: {
+                  family: 'Inter',
+                  size: 11,
+                  weight: '400'
+                },
+                color: '#6B7280'
+              }
+            }
+          }
+        }
+      });
+    } else if (ctx) {
+      // Show message if no data
+      ctx.parentElement.innerHTML = '<div class="p-12 text-center text-sm font-light text-gray-500">No sales data available to display chart</div>';
+    }
+  </script>
+
+</body>
+</html>
+

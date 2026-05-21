@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+  
+  <header class="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Home And Garden" class="w-10 h-10 transition-transform group-hover:scale-105">
+          <span class="text-xl font-light tracking-tight">Home And Garden</span>
+        </a>
+        <div class="flex items-center gap-4">
+          <a href="{{ url_for('order.cart') }}" class="text-sm font-light text-gray-600 hover:text-gray-900 hidden sm:block">
+            ← Back to Cart
+          </a>
+          <button id="mobileMenuBtn" class="lg:hidden text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="mobileMenu" class="lg:hidden hidden border-t border-gray-100">
+      <nav class="px-6 py-6 space-y-4">
+        <a href="{{ url_for('order.cart') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">← Back to Cart</a>
+        <a href="{{ url_for('main.home') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+        <a href="/products" class="block text-sm font-light text-gray-700 hover:text-gray-900">Products</a>
+      </nav>
+    </div>
+  </header>
+
+  
+  <section class="py-8 sm:py-12 lg:py-24">
+    <div class="max-w-4xl mx-auto px-6 lg:px-8">
+      <h1 class="text-4xl lg:text-5xl font-light tracking-tight text-gray-900 mb-12">Checkout</h1>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="mb-6 p-4 text-sm font-light
+            {% if category == 'success' %} bg-gray-50 text-gray-900 border border-gray-200
+            {% elif category == 'error' %} bg-red-50 text-red-900 border border-red-200 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      {% if cart_items %}
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-16">
+        
+        <div>
+          <h2 class="text-lg font-light text-gray-900 mb-6">Order Summary</h2>
+          <div class="space-y-4 mb-8">
+            {% for item in cart_items %}
+            <div class="flex gap-4 pb-4 border-b border-gray-200">
+              <div class="w-20 h-20 flex-shrink-0 bg-gray-50 overflow-hidden">
+                <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}"
+                     class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1">
+                <h3 class="text-sm font-light text-gray-900 mb-1">{{ item.name }}</h3>
+                <p class="text-xs font-light text-gray-600">Qty: {{ item.quantity }}</p>
+                {% if sellers_payment_info and item.seller_id in sellers_payment_info %}
+                  <p class="text-xs font-light text-gray-500 mt-1">{{ sellers_payment_info[item.seller_id].shop_name }}</p>
+                {% endif %}
+                <p class="text-sm font-light text-gray-900 mt-2">₱{{ "%.2f"|format(item.price * item.quantity) }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="border-t border-gray-200 pt-6">
+            <div class="flex justify-between items-center">
+              <span class="text-base font-light text-gray-700">Total</span>
+              <span class="text-2xl font-light text-gray-900">₱{{ "%.2f"|format(total_amount) }}</span>
+            </div>
+          </div>
+        </div>
+
+        
+        <div>
+          <h2 class="text-lg font-light text-gray-900 mb-6">Delivery Information</h2>
+          
+          
+          <div id="orderNotification" class="hidden fixed top-20 right-6 z-50 transform transition-all duration-300 ease-in-out opacity-0 translate-x-full">
+            <div class="bg-gray-900 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px]">
+              <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span id="orderNotificationMessage" class="text-sm font-light">Order placed!</span>
+            </div>
+          </div>
+          
+          <form id="checkoutForm" action="/place_order" method="POST" class="space-y-6">
+            <div>
+              <label class="block text-sm font-light text-gray-700 mb-3">Delivery Address</label>
+              {% if user_address %}
+              <div class="w-full px-4 py-3 bg-gray-50 border border-gray-300 text-sm font-light text-gray-900 rounded">
+                {{ user_address }}
+              </div>
+              <p class="mt-2 text-xs text-gray-500">This is your registered address. <a href="{{ url_for('user.profile') }}" class="text-gray-900 underline">Update address</a></p>
+              {% else %}
+              <div class="w-full px-4 py-3 bg-red-50 border border-red-300 text-sm font-light text-red-700 rounded">
+                No address found. Please update your profile with a delivery address.
+              </div>
+              <a href="{{ url_for('user.profile') }}" class="mt-2 inline-block text-sm text-gray-900 underline">Update Profile</a>
+              {% endif %}
+            </div>
+
+            <div>
+              <label class="block text-sm font-light text-gray-700 mb-3">Payment Method</label>
+              <select name="payment_method" id="payment_method" required
+                      class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                <option value="Cash on Delivery">Cash on Delivery</option>
+                <option value="GCash">GCash</option>
+                <option value="PayMaya">PayMaya</option>
+                <option value="Credit/Debit Card">Credit/Debit Card</option>
+              </select>
+            </div>
+
+            
+            <div id="gcash_payment" class="hidden space-y-4 p-4 bg-blue-50 border border-blue-200 rounded">
+              <h3 class="text-sm font-medium text-gray-900">Pay via GCash</h3>
+              {% if sellers_payment_info %}
+                {% set sellers_with_gcash = [] %}
+                {% for seller_id, seller_info in sellers_payment_info.items() %}
+                  {% if seller_info.gcash_number %}
+                    {% set _ = sellers_with_gcash.append((seller_id, seller_info)) %}
+                  {% endif %}
+                {% endfor %}
+                
+                {% if sellers_with_gcash %}
+                  <div class="space-y-4">
+                    {% for seller_id, seller_info in sellers_with_gcash %}
+                      <div class="border-t border-blue-200 pt-3 first:border-t-0">
+                        <div class="mb-2">
+                          <p class="text-xs font-medium text-gray-700">{{ seller_info.shop_name }}</p>
+                        </div>
+                        <div>
+                          <label class="block text-xs font-light text-gray-700 mb-2">GCash Account Number</label>
+                          <div class="px-4 py-2 bg-white border border-gray-300 rounded text-sm font-mono text-gray-900">
+                            {{ seller_info.gcash_number }}
+                          </div>
+                          <p class="mt-1 text-xs text-gray-600">Send payment to this GCash number</p>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                  <div class="border-t border-blue-200 pt-3 mt-3">
+                    <div>
+                      <label class="block text-xs font-light text-gray-700 mb-2">Amount to Pay</label>
+                      <div class="px-4 py-2 bg-white border border-gray-300 rounded text-sm font-medium text-gray-900">
+                        ₱{{ "%.2f"|format(total_amount) }}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-light text-gray-700 mb-2">Reference Number (from GCash receipt)</label>
+                    <input type="text" name="gcash_reference" id="gcash_reference" 
+                           placeholder="Enter GCash reference number"
+                           class="w-full px-4 py-2 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                    <p class="mt-1 text-xs text-gray-600">Enter the reference number from your GCash payment receipt</p>
+                  </div>
+                {% else %}
+                  <div class="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                    <p>None of the sellers in your cart have registered a GCash number yet. Please contact them or choose another payment method.</p>
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                  <p>No seller information available. Please try again.</p>
+                </div>
+              {% endif %}
+            </div>
+
+            
+            <div id="paymaya_payment" class="hidden space-y-4 p-4 bg-green-50 border border-green-200 rounded">
+              <h3 class="text-sm font-medium text-gray-900">Pay via PayMaya</h3>
+              {% if sellers_payment_info %}
+                {% set sellers_with_paymaya = [] %}
+                {% for seller_id, seller_info in sellers_payment_info.items() %}
+                  {% if seller_info.paymaya_number %}
+                    {% set _ = sellers_with_paymaya.append((seller_id, seller_info)) %}
+                  {% endif %}
+                {% endfor %}
+                
+                {% if sellers_with_paymaya %}
+                  <div class="space-y-4">
+                    {% for seller_id, seller_info in sellers_with_paymaya %}
+                      <div class="border-t border-green-200 pt-3 first:border-t-0">
+                        <div class="mb-2">
+                          <p class="text-xs font-medium text-gray-700">{{ seller_info.shop_name }}</p>
+                        </div>
+                        <div>
+                          <label class="block text-xs font-light text-gray-700 mb-2">PayMaya Account Number</label>
+                          <div class="px-4 py-2 bg-white border border-gray-300 rounded text-sm font-mono text-gray-900">
+                            {{ seller_info.paymaya_number }}
+                          </div>
+                          <p class="mt-1 text-xs text-gray-600">Send payment to this PayMaya number</p>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                  <div class="border-t border-green-200 pt-3 mt-3">
+                    <div>
+                      <label class="block text-xs font-light text-gray-700 mb-2">Amount to Pay</label>
+                      <div class="px-4 py-2 bg-white border border-gray-300 rounded text-sm font-medium text-gray-900">
+                        ₱{{ "%.2f"|format(total_amount) }}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-light text-gray-700 mb-2">Reference Number (from PayMaya receipt)</label>
+                    <input type="text" name="paymaya_reference" id="paymaya_reference" 
+                           placeholder="Enter PayMaya reference number"
+                           class="w-full px-4 py-2 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                    <p class="mt-1 text-xs text-gray-600">Enter the reference number from your PayMaya payment receipt</p>
+                  </div>
+                {% else %}
+                  <div class="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                    <p>None of the sellers in your cart have registered a PayMaya number yet. Please contact them or choose another payment method.</p>
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                  <p>No seller information available. Please try again.</p>
+                </div>
+              {% endif %}
+            </div>
+
+            
+            <div id="card_payment" class="hidden space-y-4 p-4 bg-gray-50 border border-gray-200 rounded">
+              <h3 class="text-sm font-medium text-gray-900">Card Details</h3>
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-light text-gray-700 mb-2">Card Number</label>
+                  <input type="text" name="card_number" id="card_number" 
+                         placeholder="1234 5678 9012 3456"
+                         maxlength="19"
+                         class="w-full px-4 py-2 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-light text-gray-700 mb-2">Expiry Date</label>
+                    <input type="text" name="card_expiry" id="card_expiry" 
+                           placeholder="MM/YY"
+                           maxlength="5"
+                           class="w-full px-4 py-2 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-light text-gray-700 mb-2">CVV</label>
+                    <input type="text" name="card_cvv" id="card_cvv" 
+                           placeholder="123"
+                           maxlength="4"
+                           class="w-full px-4 py-2 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-light text-gray-700 mb-2">Cardholder Name</label>
+                  <input type="text" name="cardholder_name" id="cardholder_name" 
+                         placeholder="John Doe"
+                         class="w-full px-4 py-2 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="place_order_btn" {% if not user_address %}disabled{% endif %} class="w-full {% if user_address %}bg-gray-900 hover:bg-gray-800{% else %}bg-gray-400 cursor-not-allowed{% endif %} text-white py-4 text-sm font-light transition">
+              Place Order
+            </button>
+            {% if not user_address %}
+            <p class="text-xs text-red-600 text-center">Please update your profile with a delivery address to place an order.</p>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+
+      {% else %}
+      <div class="text-center py-24">
+        <p class="text-lg font-light text-gray-600 mb-6">Your cart is empty.</p>
+        <a href="/products" class="inline-block border border-gray-900 px-8 py-3 text-sm font-light hover:bg-gray-900 hover:text-white transition">
+          Browse Products
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const paymentMethod = document.getElementById('payment_method');
+      const gcashPayment = document.getElementById('gcash_payment');
+      const paymayaPayment = document.getElementById('paymaya_payment');
+      const cardPayment = document.getElementById('card_payment');
+      const placeOrderBtn = document.getElementById('place_order_btn');
+      const form = document.querySelector('form');
+
+      // Hide all payment sections initially
+      function hideAllPaymentSections() {
+        gcashPayment.classList.add('hidden');
+        paymayaPayment.classList.add('hidden');
+        cardPayment.classList.add('hidden');
+      }
+
+      // Show payment section based on selected method
+      function showPaymentSection(method) {
+        hideAllPaymentSections();
+        
+        if (method === 'GCash') {
+          gcashPayment.classList.remove('hidden');
+        } else if (method === 'PayMaya') {
+          paymayaPayment.classList.remove('hidden');
+        } else if (method === 'Credit/Debit Card') {
+          cardPayment.classList.remove('hidden');
+        }
+      }
+
+      // Handle payment method change
+      paymentMethod.addEventListener('change', function() {
+        showPaymentSection(this.value);
+      });
+
+      // Format card number input
+      const cardNumber = document.getElementById('card_number');
+      if (cardNumber) {
+        cardNumber.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\s/g, '');
+          let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+          if (formattedValue.length <= 19) {
+            e.target.value = formattedValue;
+          }
+        });
+      }
+
+      // Format expiry date input
+      const cardExpiry = document.getElementById('card_expiry');
+      if (cardExpiry) {
+        cardExpiry.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+          }
+          e.target.value = value;
+        });
+      }
+
+      // Only allow numbers for CVV
+      const cardCvv = document.getElementById('card_cvv');
+      if (cardCvv) {
+        cardCvv.addEventListener('input', function(e) {
+          e.target.value = e.target.value.replace(/\D/g, '');
+        });
+      }
+
+      // Form validation before submit
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          const selectedMethod = paymentMethod.value;
+          
+          if (selectedMethod === 'GCash') {
+            const gcashRef = document.getElementById('gcash_reference');
+            if (!gcashRef.value.trim()) {
+              e.preventDefault();
+              showWarning('Please enter your GCash reference number');
+              gcashRef.focus();
+              return false;
+            }
+          } else if (selectedMethod === 'PayMaya') {
+            const paymayaRef = document.getElementById('paymaya_reference');
+            if (!paymayaRef.value.trim()) {
+              e.preventDefault();
+              showWarning('Please enter your PayMaya reference number');
+              paymayaRef.focus();
+              return false;
+            }
+          } else if (selectedMethod === 'Credit/Debit Card') {
+            const cardNum = document.getElementById('card_number');
+            const cardExp = document.getElementById('card_expiry');
+            const cardCvv = document.getElementById('card_cvv');
+            const cardholder = document.getElementById('cardholder_name');
+            
+            if (!cardNum.value.trim() || cardNum.value.replace(/\s/g, '').length < 16) {
+              e.preventDefault();
+              showWarning('Please enter a valid card number');
+              cardNum.focus();
+              return false;
+            }
+            
+            if (!cardExp.value.trim() || !/^\d{2}\/\d{2}$/.test(cardExp.value)) {
+              e.preventDefault();
+              showWarning('Please enter a valid expiry date (MM/YY)');
+              cardExp.focus();
+              return false;
+            }
+            
+            if (!cardCvv.value.trim() || cardCvv.value.length < 3) {
+              e.preventDefault();
+              showWarning('Please enter a valid CVV');
+              cardCvv.focus();
+              return false;
+            }
+            
+            if (!cardholder.value.trim()) {
+              e.preventDefault();
+              showWarning('Please enter cardholder name');
+              cardholder.focus();
+              return false;
+            }
+          }
+        });
+      }
+
+      // Show initial payment section if not Cash on Delivery
+      if (paymentMethod.value !== 'Cash on Delivery') {
+        showPaymentSection(paymentMethod.value);
+      }
+
+      // Handle form submission with AJAX
+      const checkoutForm = document.getElementById('checkoutForm');
+      if (checkoutForm) {
+        checkoutForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          const form = e.target;
+          const formData = new FormData(form);
+          const placeOrderBtn = document.getElementById('place_order_btn');
+          const originalText = placeOrderBtn.textContent;
+          
+          // Disable button during request
+          placeOrderBtn.disabled = true;
+          placeOrderBtn.textContent = 'Placing Order...';
+          
+          try {
+            const response = await fetch(form.action, {
+              method: 'POST',
+              body: formData
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              // Show notification
+              showOrderNotification(data.message || 'Order placed!');
+              
+              // Redirect to home after 2 seconds
+              setTimeout(() => {
+                window.location.href = '{{ url_for("home") }}';
+              }, 2000);
+            } else {
+              // Handle error
+              let errorMessage = 'Failed to place order. Please try again.';
+              try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+              } catch (e) {
+                // If not JSON, use default message
+              }
+              showError(errorMessage);
+              placeOrderBtn.disabled = false;
+              placeOrderBtn.textContent = originalText;
+            }
+          } catch (error) {
+            console.error('Error placing order:', error);
+            showError('An error occurred. Please try again.');
+            placeOrderBtn.disabled = false;
+            placeOrderBtn.textContent = originalText;
+          }
+        });
+      }
+
+      function showOrderNotification(message) {
+        const notification = document.getElementById('orderNotification');
+        const messageEl = document.getElementById('orderNotificationMessage');
+        
+        if (!notification || !messageEl) return;
+        
+        messageEl.textContent = message;
+        
+        // Show notification with animation
+        notification.classList.remove('hidden');
+        setTimeout(() => {
+          notification.classList.remove('opacity-0', 'translate-x-full');
+          notification.classList.add('opacity-100', 'translate-x-0');
+        }, 10);
+      }
+    });
+  </script>
+  <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+
+</body>
+</html>

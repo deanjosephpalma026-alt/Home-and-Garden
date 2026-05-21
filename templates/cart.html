@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart | Home And Garden</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
+    <style>
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            letter-spacing: -0.01em;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+    
+    <header class="sticky top-0 z-50 bg-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="flex items-center gap-3 group">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Home And Garden" class="w-10 h-10 transition-transform group-hover:scale-105">
+                    <span class="text-xl font-light tracking-tight">Home And Garden</span>
+                </a>
+                <nav class="hidden lg:flex items-center gap-10">
+                    <a href="{{ url_for('main.home') }}" class="text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+                    <a href="/products" class="text-sm font-light text-gray-700 hover:text-gray-900">Products</a>
+                    <a href="{{ url_for('order.cart') }}" class="text-sm font-light text-gray-900 border-b border-gray-900 pb-1">Cart</a>
+                    <a href="{{ url_for('user.profile') }}">
+                        <img src="{{ url_for('static', filename=session.get('profile_image', 'uploads/profile/default.jpg')) }}" 
+                             class="w-8 h-8 rounded-full object-cover border border-gray-200">
+                    </a>
+                </nav>
+                <div class="flex items-center gap-4">
+                    <a href="{{ url_for('main.home') }}" class="text-sm font-light text-gray-600 hover:text-gray-900 hidden sm:block">
+                        ← Back
+                    </a>
+                    <button id="mobileMenuBtn" class="lg:hidden text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="mobileMenu" class="lg:hidden hidden border-t border-gray-100">
+            <nav class="px-6 py-6 space-y-4">
+                <a href="{{ url_for('main.home') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+                <a href="/products" class="block text-sm font-light text-gray-700 hover:text-gray-900">Products</a>
+                <a href="{{ url_for('order.cart') }}" class="block text-sm font-light text-gray-900 border-b border-gray-900 pb-1">Cart</a>
+                <a href="{{ url_for('user.profile') }}" class="block text-sm font-light text-gray-700 hover:text-gray-900">Profile</a>
+            </nav>
+        </div>
+    </header>
+
+    
+    <section class="py-8 sm:py-12 lg:py-24">
+        <div class="max-w-4xl mx-auto px-6 lg:px-8">
+            <h1 class="text-4xl lg:text-5xl font-light tracking-tight text-gray-900 mb-12">Your Cart</h1>
+
+            {% if cart_items %}
+            <div class="space-y-4 sm:space-y-6 mb-12">
+                <div class="flex items-center justify-between mb-4">
+                    <label class="inline-flex items-center gap-2 text-sm font-light text-gray-700">
+                        <input id="select-all" type="checkbox" class="w-4 h-4" checked>
+                        Select All
+                    </label>
+                </div>
+                {% for item in cart_items %}
+                <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 pb-4 sm:pb-6 border-b border-gray-200" data-cart-id="{{ item.id }}">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" class="item-select mt-2" data-cart-id="{{ item.id }}" checked>
+                    </div>
+                    <div class="w-full sm:w-24 h-48 sm:h-24 flex-shrink-0 bg-gray-50 overflow-hidden rounded">
+                        <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}"
+                             class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                        <div class="flex-1">
+                            <h3 class="text-sm font-light text-gray-900 mb-2">{{ item.name }}</h3>
+                            <p class="text-sm font-light text-gray-600 mb-4">₱{{ "%.2f"|format(item.price) }}</p>
+                            <div class="flex items-center gap-3">
+                                <label class="text-xs font-light text-gray-600">Qty:</label>
+                                <div class="flex items-center border border-gray-300">
+                                    <button type="button" class="quantity-decrease px-3 py-1.5 text-sm font-light hover:bg-gray-100 transition" 
+                                            data-cart-id="{{ item.id }}" data-price="{{ item.price }}">−</button>
+                                    <input type="number" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1"
+                                           class="item-qty w-16 px-3 py-1.5 text-center text-sm font-light focus:outline-none border-x border-gray-300 bg-white"
+                                           data-cart-id="{{ item.id }}" data-price="{{ item.price }}" readonly>
+                                    <button type="button" class="quantity-increase px-3 py-1.5 text-sm font-light hover:bg-gray-100 transition"
+                                            data-cart-id="{{ item.id }}" data-price="{{ item.price }}">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex sm:flex-col justify-between sm:justify-start sm:text-right space-y-2">
+                            <p class="text-base sm:text-sm font-light text-gray-900 item-total" data-price="{{ item.price }}" data-cart-id="{{ item.id }}">
+                                ₱{{ "%.2f"|format(item.price * item.quantity) }}
+                            </p>
+                            <form action="/remove_from_cart?cart_id={{ item.id }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-xs font-light text-gray-500 hover:text-gray-900 underline underline-offset-4">
+                                    Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            
+            <div class="border-t border-gray-200 pt-8 mb-8">
+                <div class="flex justify-between items-center">
+                    <span class="text-base font-light text-gray-700">Total</span>
+                    <span id="grand-total" class="text-2xl font-light text-gray-900">₱0.00</span>
+                </div>
+            </div>
+
+            
+            <div class="flex gap-4">
+                <a href="/products" class="flex-1 border border-gray-900 px-8 py-4 text-sm font-light text-center hover:bg-gray-900 hover:text-white transition">
+                    Continue Shopping
+                </a>
+                <a href="{{ url_for('order.checkout') }}" class="flex-1 bg-gray-900 text-white px-8 py-4 text-sm font-light text-center hover:bg-gray-800 transition">
+                    Proceed to Checkout
+                </a>
+            </div>
+
+            {% else %}
+            <div class="text-center py-24">
+                <p class="text-lg font-light text-gray-600 mb-6">Your cart is empty.</p>
+                <a href="/products" class="inline-block border border-gray-900 px-8 py-3 text-sm font-light hover:bg-gray-900 hover:text-white transition">
+                    Browse Products
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <script>
+        function updateTotals() {
+            const qtyInputs = document.querySelectorAll(".item-qty");
+            let grandTotal = 0;
+            qtyInputs.forEach(input => {
+                const cartId = input.dataset.cartId;
+                // Respect selection: only sum items with checked checkbox
+                const selectCheckbox = document.querySelector(`.item-select[data-cart-id="${cartId}"]`);
+                if (selectCheckbox && !selectCheckbox.checked) return;
+
+                const price = parseFloat(input.dataset.price) || 0;
+                const qty = parseInt(input.value) || 1;
+                const total = price * qty;
+
+                const itemTotalElement = document.querySelector(`.item-total[data-cart-id="${cartId}"]`);
+                if (itemTotalElement) {
+                    itemTotalElement.textContent = `₱${total.toFixed(2)}`;
+                }
+                grandTotal += total;
+            });
+            const grandTotalElement = document.getElementById("grand-total");
+            if (grandTotalElement) {
+                grandTotalElement.textContent = `₱${grandTotal.toFixed(2)}`;
+            }
+        }
+
+        function updateCartQuantity(cartId, quantity) {
+            fetch(`/update_cart/${cartId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}',
+                },
+                body: JSON.stringify({ quantity: quantity })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateTotals();
+                } else {
+                    showError(data.message || 'Error updating cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Error updating cart. Please try again.');
+            });
+        }
+
+        // Quantity decrease button
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('quantity-decrease')) {
+                const input = e.target.nextElementSibling;
+                const currentQty = parseInt(input.value) || 1;
+                if (currentQty > 1) {
+                    input.value = currentQty - 1;
+                    const cartId = e.target.dataset.cartId;
+                    updateCartQuantity(cartId, input.value);
+                }
+            }
+        });
+
+        // Quantity increase button
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('quantity-increase')) {
+                const input = e.target.previousElementSibling;
+                const currentQty = parseInt(input.value) || 1;
+                input.value = currentQty + 1;
+                const cartId = e.target.dataset.cartId;
+                updateCartQuantity(cartId, input.value);
+            }
+        });
+
+        // Select-all behavior
+        const selectAll = document.getElementById('select-all');
+        if (selectAll) {
+            selectAll.addEventListener('change', function(e) {
+                const checked = e.target.checked;
+                document.querySelectorAll('.item-select').forEach(cb => cb.checked = checked);
+                updateTotals();
+            });
+        }
+
+        // Individual item selection changes should update totals
+        document.addEventListener('change', function(e) {
+            if (e.target.classList && e.target.classList.contains('item-select')) {
+                updateTotals();
+            }
+        });
+
+        // Initialize totals on page load
+        window.onload = updateTotals;
+    </script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script>
+        const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+        const mobileMenu = document.getElementById("mobileMenu");
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener("click", () => {
+                mobileMenu.classList.toggle("hidden");
+            });
+        }
+    </script>
+</body>
+</html>

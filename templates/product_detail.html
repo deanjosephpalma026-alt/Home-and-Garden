@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ product[1] }} | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+  
+  <header class="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Home And Garden" class="w-10 h-10 transition-transform group-hover:scale-105">
+          <span class="text-xl font-light tracking-tight">Home And Garden</span>
+        </a>
+        <nav class="hidden lg:flex items-center gap-10">
+          <a href="{{ url_for('main.home') }}" class="text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+          <a href="/products" class="text-sm font-light text-gray-700 hover:text-gray-900">Products</a>
+          <a href="#" class="text-sm font-light text-gray-700 hover:text-gray-900">About</a>
+          {% if session.get('id') %}
+            <a href="{{ url_for('order.cart') }}" class="text-gray-700 hover:text-gray-900">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+            </a>
+            <a href="{{ url_for('user.profile') }}">
+              <img src="{{ url_for('static', filename=session.get('profile_image', 'uploads/profile/default.jpg')) }}" 
+                   class="w-8 h-8 rounded-full object-cover border border-gray-200">
+            </a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="text-sm font-light text-gray-700 hover:text-gray-900">Login</a>
+            <a href="{{ url_for('auth.signup') }}" class="text-sm font-light border border-gray-900 px-4 py-2 hover:bg-gray-900 hover:text-white transition">Sign Up</a>
+          {% endif %}
+        </nav>
+        <button id="mobileMenuBtn" class="lg:hidden text-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  
+  <section class="py-16 lg:py-24">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-16 lg:gap-24">
+        
+        <div class="aspect-square overflow-hidden bg-gray-50">
+          {% set image_path = product[6] %}
+          <img src="{{ url_for('static', filename=image_path.replace('static/', '').lstrip('/')) }}" 
+               alt="{{ product[1] }}" 
+               class="w-full h-full object-cover">
+        </div>
+
+        
+        <div class="flex flex-col justify-center space-y-8">
+          <div>
+            <p class="text-sm font-light text-gray-500 mb-2">{{ product[5] or 'Uncategorized' }}</p>
+            <h1 class="text-4xl lg:text-5xl font-light tracking-tight text-gray-900 mb-6">
+              {{ product[1] }}
+            </h1>
+            {% if product[4] %}
+            <p class="text-base font-light text-gray-600 mb-2 leading-relaxed">
+              {{ product[4] }}
+            </p>
+            {% endif %}
+
+            {% if seller_id %}
+            <div class="flex items-center gap-4 mb-4">
+              {% if seller_profile_image %}
+                <img src="{{ url_for('static', filename=seller_profile_image) }}" alt="{{ shop_name or seller_name or 'Seller' }}" class="w-10 h-10 rounded-full object-cover border border-gray-200">
+              {% endif %}
+              <div class="flex items-center gap-3">
+                <a href="/seller_profile_public?seller_id={{ seller_id }}" class="text-sm font-medium text-gray-900 hover:underline">{{ shop_name or seller_name or 'Seller' }}</a>
+                <a href="/seller_profile_public?seller_id={{ seller_id }}" class="ml-3 inline-block bg-gray-100 border border-gray-300 text-sm text-gray-800 px-3 py-2 rounded hover:bg-gray-200">View Shop</a>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="border-t border-b border-gray-200 py-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-light text-gray-600">Price</span>
+              <span class="text-2xl font-light text-gray-900">₱{{ product[2] }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-light text-gray-600">Stock</span>
+              <span class="text-sm font-light text-gray-900">{{ product[3] if product[3] is not none else 0 }} available</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-light text-gray-600">Sold</span>
+              <span class="text-sm font-light text-gray-900">{{ sold_count or 0 }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-light text-gray-600">Rating</span>
+              <span class="text-sm font-light text-gray-900">{{ '%.1f'|format(average_rating or 0) }} / 5 ({{ review_count or 0 }} reviews)</span>
+            </div>
+          </div>
+
+          {% if size_options or color_options %}
+          <div class="space-y-4">
+            {% if size_options %}
+            <div>
+              <p class="text-sm font-light text-gray-600 mb-2">Size options</p>
+              <div class="flex flex-wrap gap-2">
+                {% for size in size_options %}
+                <span class="px-3 py-1 border border-gray-300 rounded-full text-sm font-light text-gray-700">{{ size }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            {% if color_options %}
+            <div>
+              <p class="text-sm font-light text-gray-600 mb-2">Color options</p>
+              <div class="flex flex-wrap gap-2">
+                {% for color in color_options %}
+                <span class="px-3 py-1 border border-gray-300 rounded-full text-sm font-light text-gray-700">{{ color }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          {% if session.get('id') %}
+          <form id="addToCartForm" action="{{ url_for('order.add_to_cart', product_id=product_id) }}" method="POST" class="space-y-6">
+            <div>
+              <label for="quantity" class="block text-sm font-light text-gray-700 mb-3">Quantity</label>
+              <div class="flex items-center gap-2">
+                <button type="button" 
+                        onclick="decreaseQuantity()" 
+                        class="w-10 h-10 border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center text-sm font-light transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                  </svg>
+                </button>
+                <input type="number" 
+                       id="quantity" 
+                       name="quantity" 
+                       value="1" 
+                       min="1" 
+                       max="{{ product[3] }}"
+                       readonly
+                       class="w-20 px-4 py-2 border border-gray-300 text-center text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                <button type="button" 
+                        onclick="increaseQuantity()" 
+                        class="w-10 h-10 border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center text-sm font-light transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">Max: {{ product[3] if product[3] is not none else 0 }} available</p>
+            </div>
+            <div class="flex gap-4">
+              <button type="submit" 
+                      id="addToCartBtn"
+                      class="flex-1 border border-gray-900 px-8 py-4 text-sm font-light hover:bg-gray-900 hover:text-white transition">
+                Add to Cart
+              </button>
+              <button type="button" 
+                      id="buyNowBtn"
+                      class="flex-1 bg-gray-900 text-white px-8 py-4 text-sm font-light hover:bg-gray-800 transition">
+                Buy Now
+              </button>
+              <input type="hidden" name="action" id="action" value="add_to_cart">
+            </div>
+          </form>
+
+          <div class="space-y-4 pt-8">
+            <div>
+              <h2 class="text-2xl font-light tracking-tight text-gray-900 mb-2">Reviews</h2>
+              <p class="text-sm text-gray-600 font-light">What customers are saying about this product</p>
+            </div>
+            {% if reviews %}
+              <div class="space-y-4">
+                {% for review in reviews %}
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-center justify-between gap-4 mb-2">
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">{{ review.user_name }}</p>
+                      <p class="text-xs text-gray-500">{{ review.created_at.strftime('%b %d, %Y') if review.created_at and review.created_at is not string else (review.created_at[:10] if review.created_at else 'Recently') }}</p>
+                    </div>
+                    <span class="text-sm font-light text-gray-700">{{ review.rating }}/5</span>
+                  </div>
+                  {% if review.title %}
+                    <p class="text-sm font-medium text-gray-900 mb-1">{{ review.title }}</p>
+                  {% endif %}
+                  {% if review.comment %}
+                    <p class="text-sm text-gray-600 font-light leading-relaxed">{{ review.comment }}</p>
+                  {% else %}
+                    <p class="text-sm text-gray-500 font-light italic">No written comment.</p>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="border border-dashed border-gray-300 rounded-lg p-6 text-sm text-gray-500 font-light">
+                No reviews yet. Be the first to rate this product.
+              </div>
+            {% endif %}
+          </div>
+          
+          
+          <div id="notification" class="fixed top-20 right-6 z-50 hidden transform transition-all duration-300 ease-in-out opacity-0 translate-x-full">
+            <div class="bg-gray-900 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px]">
+              <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span id="notificationMessage" class="text-sm font-light"></span>
+            </div>
+          </div>
+          
+          <script>
+            // Wait for DOM to be fully loaded
+            document.addEventListener('DOMContentLoaded', function() {
+              const maxStock = {{ product[3] if product[3] is not none else 0 }};
+              
+              function increaseQuantity() {
+                const quantityInput = document.getElementById('quantity');
+                let currentValue = parseInt(quantityInput.value) || 1;
+                if (currentValue < maxStock) {
+                  quantityInput.value = currentValue + 1;
+                } else {
+                  showWarning('Maximum stock reached!');
+                }
+              }
+              
+              function decreaseQuantity() {
+                const quantityInput = document.getElementById('quantity');
+                let currentValue = parseInt(quantityInput.value) || 1;
+                if (currentValue > 1) {
+                  quantityInput.value = currentValue - 1;
+                }
+              }
+              
+              function showNotification(message, isError = false) {
+                const notification = document.getElementById('notification');
+                const messageEl = document.getElementById('notificationMessage');
+                
+                if (!notification || !messageEl) return;
+                
+                messageEl.textContent = message;
+                
+                // Change color if error
+                const notificationDiv = notification.querySelector('div');
+                if (isError) {
+                  notificationDiv.classList.remove('bg-gray-900');
+                  notificationDiv.classList.add('bg-red-600');
+                } else {
+                  notificationDiv.classList.remove('bg-red-600');
+                  notificationDiv.classList.add('bg-gray-900');
+                }
+                
+                // Show notification with animation
+                notification.classList.remove('hidden');
+                setTimeout(() => {
+                  notification.classList.remove('opacity-0', 'translate-x-full');
+                  notification.classList.add('opacity-100', 'translate-x-0');
+                }, 10);
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                  notification.classList.remove('opacity-100', 'translate-x-0');
+                  notification.classList.add('opacity-0', 'translate-x-full');
+                  setTimeout(() => {
+                    notification.classList.add('hidden');
+                  }, 300);
+                }, 3000);
+              }
+              
+              // Make functions globally available for onclick handlers
+              window.increaseQuantity = increaseQuantity;
+              window.decreaseQuantity = decreaseQuantity;
+              
+              // Handle Add to Cart form submission
+              const addToCartForm = document.getElementById('addToCartForm');
+              if (addToCartForm) {
+                // Get the form action URL explicitly and validate it
+                let formActionUrl = addToCartForm.getAttribute('action');
+                
+                // Ensure it's a string and not an object
+                if (typeof formActionUrl !== 'string' || !formActionUrl) {
+                  console.error('Invalid form action URL:', formActionUrl);
+                  formActionUrl = '{{ url_for("order.add_to_cart", product_id=product_id) }}';
+                }
+                
+                addToCartForm.addEventListener('submit', async function(e) {
+                  e.preventDefault();
+                  
+                  const form = e.target;
+                  const formData = new FormData(form);
+                  const addToCartBtn = document.getElementById('addToCartBtn');
+                  const originalText = addToCartBtn.textContent;
+                  
+                  // Get action URL again to ensure it's current
+                  let actionUrl = form.getAttribute('action');
+                  if (typeof actionUrl !== 'string' || !actionUrl || actionUrl.includes('[object')) {
+                    actionUrl = formActionUrl;
+                  }
+                  
+                  // Disable button during request
+                  addToCartBtn.disabled = true;
+                  addToCartBtn.textContent = 'Adding...';
+                  
+                  try {
+                    // Use the validated action URL
+                    const response = await fetch(actionUrl, {
+                      method: 'POST',
+                      body: formData
+                    });
+                    
+                    // Check if response is ok
+                    if (!response.ok) {
+                      // Try to get error message from response
+                      let errorMessage = 'Failed to add to cart';
+                      try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorMessage;
+                      } catch (e) {
+                        errorMessage = `Error ${response.status}: ${response.statusText}`;
+                      }
+                      showNotification(errorMessage, true);
+                      return;
+                    }
+                    
+                    // Parse JSON response
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                      showNotification(data.message);
+                    } else {
+                      showNotification(data.message || 'Failed to add to cart', true);
+                    }
+                  } catch (error) {
+                    console.error('Add to cart error:', error);
+                    showNotification('An error occurred. Please try again.', true);
+                  } finally {
+                    // Re-enable button
+                    addToCartBtn.disabled = false;
+                    addToCartBtn.textContent = originalText;
+                  }
+                });
+              }
+              
+              // Handle Buy Now button
+              const buyNowBtn = document.getElementById('buyNowBtn');
+              if (buyNowBtn) {
+                buyNowBtn.addEventListener('click', async function(e) {
+                  e.preventDefault();
+                  
+                  const form = document.getElementById('addToCartForm');
+                  if (!form) {
+                    console.error('Form not found');
+                    return;
+                  }
+                  
+                  // Get the form action URL explicitly and validate it
+                  let formActionUrl = form.getAttribute('action');
+                  
+                  // Ensure it's a string and not an object
+                  if (typeof formActionUrl !== 'string' || !formActionUrl || formActionUrl.includes('[object')) {
+                    console.error('Invalid form action URL:', formActionUrl);
+                    formActionUrl = '{{ url_for("order.add_to_cart", product_id=product_id) }}';
+                  }
+                  
+                  const formData = new FormData(form);
+                  const buyNowBtnEl = this;
+                  const originalText = buyNowBtnEl.textContent;
+                  
+                  // Disable button during request
+                  buyNowBtnEl.disabled = true;
+                  buyNowBtnEl.textContent = 'Processing...';
+                  
+                  try {
+                    // Use the validated action URL
+                    const response = await fetch(formActionUrl, {
+                      method: 'POST',
+                      body: formData
+                    });
+                    
+                    // Check if response is ok
+                    if (!response.ok) {
+                      // Try to get error message from response
+                      let errorMessage = 'Failed to add to cart';
+                      try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorMessage;
+                      } catch (e) {
+                        errorMessage = `Error ${response.status}: ${response.statusText}`;
+                      }
+                      showNotification(errorMessage, true);
+                      buyNowBtnEl.disabled = false;
+                      buyNowBtnEl.textContent = originalText;
+                      return;
+                    }
+                    
+                    // Parse JSON response
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                      // Redirect to checkout after adding to cart
+                      window.location.href = '{{ url_for("order.checkout") }}';
+                    } else {
+                      showNotification(data.message || 'Failed to add to cart', true);
+                      buyNowBtnEl.disabled = false;
+                      buyNowBtnEl.textContent = originalText;
+                    }
+                  } catch (error) {
+                    console.error('Buy now error:', error);
+                    showNotification('An error occurred. Please try again.', true);
+                    buyNowBtnEl.disabled = false;
+                    buyNowBtnEl.textContent = originalText;
+                  }
+                });
+              }
+            });
+          </script>
+          {% else %}
+          <div class="space-y-4">
+            <div class="bg-gray-50 border border-gray-200 p-6">
+              <p class="text-sm font-light text-gray-700 mb-4">Please log in to add items to cart</p>
+              <div class="flex gap-4">
+                <a href="{{ url_for('auth.login') }}" 
+                   class="flex-1 border border-gray-900 px-8 py-4 text-sm font-light text-center hover:bg-gray-900 hover:text-white transition">
+                  Log In
+                </a>
+                <a href="{{ url_for('auth.signup') }}" 
+                   class="flex-1 bg-gray-900 text-white px-8 py-4 text-sm font-light text-center hover:bg-gray-800 transition">
+                  Sign Up
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="flex items-center gap-4">
+            <a href="javascript:history.back()" class="text-sm font-light text-gray-600 hover:text-gray-900 underline underline-offset-4">
+              ← Back to Products
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <footer class="border-t border-gray-100 py-16 mt-24">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="border-t border-gray-100 pt-8 text-center text-sm text-gray-500 font-light">
+        <p>&copy; 2024 Home And Garden. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+
+</body>
+</html>

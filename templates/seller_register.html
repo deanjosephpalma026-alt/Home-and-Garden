@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seller Registration | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+  </style>
+</head>
+<body class="bg-white min-h-screen">
+  
+  <header class="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Home And Garden" class="w-10 h-10 transition-transform group-hover:scale-105">
+          <span class="text-xl font-light tracking-tight">Home And Garden</span>
+        </a>
+
+        
+        <nav class="flex items-center gap-6">
+          <a href="{{ url_for('auth.login') }}" class="text-sm font-light text-gray-700 hover:text-gray-900">Buyer Login</a>
+          <a href="{{ url_for('seller.seller_login') }}" class="text-sm font-light text-gray-700 hover:text-gray-900">Seller Login</a>
+          <a href="{{ url_for('rider.rider_login') }}" class="text-sm font-light text-gray-700 hover:text-gray-900">Rider Login</a>
+          <a href="{{ url_for('main.index') }}" class="text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  
+  <div class="min-h-[calc(100vh-5rem)] py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center mb-12">
+        <h1 class="text-3xl font-light tracking-tight text-gray-900 mb-2">Become a Seller</h1>
+        <p class="text-sm font-light text-gray-600">Register your shop and start selling</p>
+      </div>
+
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-6 p-4 text-sm font-light
+            {% if category == 'success' %} bg-gray-50 text-gray-900 border border-gray-200
+            {% elif category == 'error' %} bg-red-50 text-red-900 border border-red-200 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    
+    <form action="{{ url_for('auth.seller_register') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-light text-gray-700 mb-2">First Name <span class="text-red-500">*</span></label>
+          <input name="first_name" required placeholder="First Name"
+                 class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+        </div>
+        <div>
+          <label class="block text-sm font-light text-gray-700 mb-2">Last Name <span class="text-red-500">*</span></label>
+          <input name="last_name" required placeholder="Last Name"
+                 class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-light text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
+        <input name="email" required type="email" placeholder="seller@email.com"
+               class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+      </div>
+
+      <div>
+        <label class="block text-sm font-light text-gray-700 mb-2">Shop Name <span class="text-red-500">*</span></label>
+        <input name="shop_name" required placeholder="My Shop Name"
+               class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+      </div>
+
+      <div>
+        <label class="block text-sm font-light text-gray-700 mb-2">Password <span class="text-red-500">*</span></label>
+        <div class="relative">
+          <input name="password" required type="password" id="password" placeholder="Create a password"
+                 pattern="^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':\\|,.<>\/?]).{8,}$"
+                 class="w-full px-4 py-3 pr-12 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+          <button type="button" id="togglePassword" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <svg id="eyeOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            <svg id="eyeClose" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.89-4.568M6.2 6.2A9.956 9.956 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.97 9.97 0 01-1.523 3.018M9.88 9.88A3 3 0 0114.12 14.12"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3l18 18"/>
+            </svg>
+          </button>
+        </div>
+        <div id="passwordRequirements" class="mt-2 text-xs font-light text-gray-600 space-y-1">
+          <p class="text-gray-700 mb-1">Password must contain:</p>
+          <div class="flex items-center gap-2" id="req-length">
+            <span class="text-gray-400">•</span>
+            <span>At least 8 characters</span>
+          </div>
+          <div class="flex items-center gap-2" id="req-uppercase">
+            <span class="text-gray-400">•</span>
+            <span>At least one uppercase letter (A-Z)</span>
+          </div>
+          <div class="flex items-center gap-2" id="req-special">
+            <span class="text-gray-400">•</span>
+            <span>At least one special character (!@#$%^&*...)</span>
+          </div>
+        </div>
+        <p id="passwordError" class="mt-2 text-xs font-light text-red-600 hidden"></p>
+      </div>
+
+      
+      <div class="border-t border-gray-200 pt-6 space-y-4">
+        <h3 class="text-sm font-medium text-gray-900 mb-4">Address Information</h3>
+        
+        <div>
+          <label class="block text-sm font-light text-gray-700 mb-2">Region <span class="text-red-500">*</span></label>
+          <select id="region" name="region" required
+                  class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+            <option value="">Select Region</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-light text-gray-700 mb-2">Province <span class="text-red-500">*</span></label>
+          <select id="province" name="province" required
+                  class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+            <option value="">Select Province</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-light text-gray-700 mb-2">City / Municipality <span class="text-red-500">*</span></label>
+          <select id="city_municipality" name="city_municipality" required
+                  class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+            <option value="">Select City / Municipality</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-light text-gray-700 mb-2">Barangay <span class="text-red-500">*</span></label>
+          <select id="barangay" name="barangay" required
+                  class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+            <option value="">Select Barangay</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-light text-gray-700 mb-2">House Number</label>
+            <input name="house_number" type="text" placeholder="123"
+                   class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+          </div>
+          <div>
+            <label class="block text-sm font-light text-gray-700 mb-2">Postal Code</label>
+            <input name="postal_code" type="text" placeholder="1234"
+                   class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-light text-gray-700 mb-2">Street Name</label>
+          <input name="street_name" type="text" placeholder="Street Name"
+                 class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+        </div>
+      </div>
+
+      
+      <div class="border-t border-gray-200 pt-6">
+        <label class="block text-sm font-light text-gray-700 mb-2">
+          Valid ID <span class="text-red-500">*</span>
+          <span class="text-xs text-gray-500 font-normal block mt-1">(Government-issued ID: Driver's License, Passport, etc.)</span>
+        </label>
+        <input type="file" name="valid_id" accept="image/*,.pdf" required
+               class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+        <p class="text-xs text-gray-500 mt-2 font-light">Accepted formats: JPG, PNG, PDF (Max 5MB)</p>
+      </div>
+
+      <div class="bg-gray-50 border border-gray-200 p-4 text-sm font-light text-gray-700">
+        <p class="font-medium mb-1">Note:</p>
+        <p>Your seller account will be pending approval. You'll be notified once approved.</p>
+      </div>
+
+      <button type="submit" class="w-full bg-gray-900 text-white py-3.5 text-sm font-light hover:bg-gray-800 transition">
+        Register Shop
+      </button>
+    </form>
+
+    <div class="mt-8 text-center">
+      <p class="text-sm font-light text-gray-600">
+        Already have an account?
+        <a href="{{ url_for('seller.seller_login') }}" class="text-gray-900 underline underline-offset-4">Log in here</a>
+      </p>
+    </div>
+
+    <div class="mt-8 text-center">
+      <a href="{{ url_for('main.index') }}" class="text-sm font-light text-gray-600 hover:text-gray-900 underline underline-offset-4">
+        ← Back to Home
+      </a>
+    </div>
+    </div>
+  </div>
+
+  <script>
+    const passwordField = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    const eyeOpen = document.getElementById("eyeOpen");
+    const eyeClose = document.getElementById("eyeClose");
+
+    togglePassword.addEventListener("click", () => {
+      const show = passwordField.type === "password";
+      passwordField.type = show ? "text" : "password";
+      eyeOpen.classList.toggle("hidden", !show);
+      eyeClose.classList.toggle("hidden", show);
+    });
+
+    // Password strength validation
+    const passwordInput = document.getElementById("password");
+    const passwordError = document.getElementById("passwordError");
+    const reqLength = document.getElementById("req-length");
+    const reqUppercase = document.getElementById("req-uppercase");
+    const reqSpecial = document.getElementById("req-special");
+
+    function validatePassword(password) {
+      const hasLength = password.length >= 8;
+      const hasUppercase = /[A-Z]/.test(password);
+      const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':\\|,.<>\/?]/.test(password);
+
+      // Update visual indicators
+      const lengthIcon = reqLength.querySelector("span:first-child");
+      const lengthText = reqLength.querySelector("span:last-child");
+      if (hasLength) {
+        lengthIcon.textContent = "✓";
+        lengthIcon.classList.remove("text-gray-400");
+        lengthIcon.classList.add("text-green-600");
+        lengthText.classList.add("text-green-600");
+      } else {
+        lengthIcon.textContent = "•";
+        lengthIcon.classList.remove("text-green-600");
+        lengthIcon.classList.add("text-gray-400");
+        lengthText.classList.remove("text-green-600");
+      }
+
+      const uppercaseIcon = reqUppercase.querySelector("span:first-child");
+      const uppercaseText = reqUppercase.querySelector("span:last-child");
+      if (hasUppercase) {
+        uppercaseIcon.textContent = "✓";
+        uppercaseIcon.classList.remove("text-gray-400");
+        uppercaseIcon.classList.add("text-green-600");
+        uppercaseText.classList.add("text-green-600");
+      } else {
+        uppercaseIcon.textContent = "•";
+        uppercaseIcon.classList.remove("text-green-600");
+        uppercaseIcon.classList.add("text-gray-400");
+        uppercaseText.classList.remove("text-green-600");
+      }
+
+      const specialIcon = reqSpecial.querySelector("span:first-child");
+      const specialText = reqSpecial.querySelector("span:last-child");
+      if (hasSpecial) {
+        specialIcon.textContent = "✓";
+        specialIcon.classList.remove("text-gray-400");
+        specialIcon.classList.add("text-green-600");
+        specialText.classList.add("text-green-600");
+      } else {
+        specialIcon.textContent = "•";
+        specialIcon.classList.remove("text-green-600");
+        specialIcon.classList.add("text-gray-400");
+        specialText.classList.remove("text-green-600");
+      }
+
+      return hasLength && hasUppercase && hasSpecial;
+    }
+
+    passwordInput.addEventListener("input", (e) => {
+      const password = e.target.value;
+      if (password.length > 0) {
+        validatePassword(password);
+        passwordError.classList.add("hidden");
+      } else {
+        // Reset indicators
+        [reqLength, reqUppercase, reqSpecial].forEach(req => {
+          const icon = req.querySelector("span:first-child");
+          const text = req.querySelector("span:last-child");
+          icon.textContent = "•";
+          icon.classList.remove("text-green-600");
+          icon.classList.add("text-gray-400");
+          text.classList.remove("text-green-600");
+        });
+      }
+    });
+
+    // Form validation before submit
+    document.querySelector("form").addEventListener("submit", (e) => {
+      const password = passwordInput.value;
+      if (!validatePassword(password)) {
+        e.preventDefault();
+        passwordError.textContent = "Please ensure your password meets all requirements above.";
+        passwordError.classList.remove("hidden");
+        passwordInput.focus();
+        return false;
+      }
+    });
+
+    // Address API
+    const regionSelect = document.getElementById("region");
+    const provinceSelect = document.getElementById("province");
+    const cityMunicipalitySelect = document.getElementById("city_municipality");
+    const barangaySelect = document.getElementById("barangay");
+
+    regionSelect.addEventListener("change", () => {
+      provinceSelect.innerHTML = '<option value="">Select Province</option>';
+      cityMunicipalitySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+      barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+      if (regionSelect.value) {
+        loadProvinces(regionSelect.value);
+      }
+    });
+
+    provinceSelect.addEventListener("change", () => {
+      cityMunicipalitySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+      barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+      if (provinceSelect.value && regionSelect.value) {
+        loadCityMunicipality(regionSelect.value, provinceSelect.value);
+      }
+    });
+
+    cityMunicipalitySelect.addEventListener("change", () => {
+      barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+      if (cityMunicipalitySelect.value && provinceSelect.value && regionSelect.value) {
+        loadBarangays(regionSelect.value, provinceSelect.value, cityMunicipalitySelect.value);
+      }
+    });
+
+    function loadRegions() {
+      fetch("{{ url_for('main.get_regions') }}")
+        .then(response => response.json())
+        .then(data => {
+          regionSelect.innerHTML = '<option value="">Select Region</option>';
+          data.regions.forEach(region => {
+            const option = document.createElement("option");
+            option.value = region;
+            option.textContent = region;
+            regionSelect.appendChild(option);
+          });
+        })
+        .catch(error => console.error("Error loading regions:", error));
+    }
+
+    function loadProvinces(region) {
+      fetch(`{{ url_for('main.get_provinces') }}?region=${encodeURIComponent(region)}`)
+        .then(response => response.json())
+        .then(data => {
+          provinceSelect.innerHTML = '<option value="">Select Province</option>';
+          if (data.provinces && data.provinces.length > 0) {
+            data.provinces.forEach(province => {
+              const option = document.createElement("option");
+              option.value = province;
+              option.textContent = province;
+              provinceSelect.appendChild(option);
+            });
+          }
+        })
+        .catch(error => console.error("Error loading provinces:", error));
+    }
+
+    function loadCityMunicipality(region, province) {
+      fetch(`{{ url_for('main.get_city_municipality') }}?region=${encodeURIComponent(region)}&province=${encodeURIComponent(province)}`)
+        .then(response => response.json())
+        .then(data => {
+          cityMunicipalitySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+          if (data.cities_municipalities && data.cities_municipalities.length > 0) {
+            data.cities_municipalities.forEach(cityMunicipality => {
+              const option = document.createElement("option");
+              option.value = cityMunicipality;
+              option.textContent = cityMunicipality;
+              cityMunicipalitySelect.appendChild(option);
+            });
+          }
+        })
+        .catch(error => console.error("Error loading cities/municipalities:", error));
+    }
+
+    function loadBarangays(region, province, cityMunicipality) {
+      fetch(`{{ url_for('main.get_barangays') }}?region=${encodeURIComponent(region)}&province=${encodeURIComponent(province)}&city_municipality=${encodeURIComponent(cityMunicipality)}`)
+        .then(response => response.json())
+        .then(data => {
+          barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+          if (data.barangays && data.barangays.length > 0) {
+            data.barangays.forEach(barangay => {
+              const option = document.createElement("option");
+              option.value = barangay;
+              option.textContent = barangay;
+              barangaySelect.appendChild(option);
+            });
+          } else {
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "No barangays available";
+            option.disabled = true;
+            barangaySelect.appendChild(option);
+          }
+        })
+        .catch(error => {
+          console.error("Error loading barangays:", error);
+          barangaySelect.innerHTML = '<option value="">Error loading barangays</option>';
+        });
+    }
+
+    // Load regions on page load
+    loadRegions();
+
+  </script>
+</body>
+</html>

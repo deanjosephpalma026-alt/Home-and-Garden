@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Email | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+  </style>
+</head>
+<body class="bg-white min-h-screen">
+  
+  <header class="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Home And Garden" class="w-10 h-10 transition-transform group-hover:scale-105">
+          <span class="text-xl font-light tracking-tight">Home And Garden</span>
+        </a>
+
+        
+        <nav class="flex items-center gap-6">
+          <a href="/" class="text-sm font-light text-gray-700 hover:text-gray-900">Home</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  
+  <div class="min-h-[calc(100vh-5rem)] flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      
+      <div class="text-center mb-12">
+        <h1 class="text-3xl font-light tracking-tight text-gray-900 mb-2">Verify Your Email</h1>
+        <p class="text-sm font-light text-gray-600">Enter the verification code sent to your email</p>
+      </div>
+
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-6 p-4 text-sm font-light
+            {% if category == 'success' %} bg-gray-50 text-gray-900 border border-gray-200
+            {% elif category == 'error' %} bg-red-50 text-red-900 border border-red-200
+            {% else %} bg-yellow-50 text-yellow-900 border border-yellow-200 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    
+    <form action="{{ url_for('auth.verify_email') }}" method="POST" class="space-y-6">
+      <input type="hidden" name="email" value="{{ email }}">
+      <input type="hidden" name="user_type" value="{{ user_type }}">
+      
+      <div>
+        <label class="block text-sm font-light text-gray-700 mb-2">Email</label>
+        <input type="email" value="{{ email }}" disabled
+               class="w-full px-4 py-3 border border-gray-300 text-sm font-light bg-gray-50 text-gray-500">
+      </div>
+
+      <div>
+        <label class="block text-sm font-light text-gray-700 mb-2">Verification Code</label>
+        <input type="text" name="verification_code" required placeholder="Enter 6-digit code" maxlength="6"
+               pattern="[0-9]{6}"
+               class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition text-center text-2xl tracking-widest">
+        <p class="mt-2 text-xs font-light text-gray-500">Enter the 6-digit code sent to your email</p>
+      </div>
+
+      <button type="submit" class="w-full bg-gray-900 text-white py-3.5 text-sm font-light hover:bg-gray-800 transition">
+        Verify Email
+      </button>
+    </form>
+
+    <div class="mt-4 text-center">
+      <form id="resendForm" action="/resend_verification" method="POST">
+        <input type="hidden" name="email" value="{{ email }}">
+        <input type="hidden" name="user_type" value="{{ user_type }}">
+        <button type="button" id="resendBtn" disabled
+                class="w-full text-sm font-light text-gray-400 cursor-not-allowed">
+          <span id="resendText" class="hidden">Resend Verification Code</span>
+          <span id="timerText">Resending automatically in <span id="countdown" class="font-medium">60</span> seconds</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="mt-12 text-center">
+      <a href="{{ url_for('auth.login') if user_type == 'user' else url_for('seller.seller_login') }}" class="text-sm font-light text-gray-600 hover:text-gray-900 underline underline-offset-4">
+        ← Back to Login
+      </a>
+    </div>
+    </div>
+  </div>
+
+  <script>
+    // Auto-format verification code input
+    const codeInput = document.querySelector('input[name="verification_code"]');
+    codeInput.addEventListener('input', function(e) {
+      this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
+    // 60-second countdown timer with auto-resend
+    let countdown = 60;
+    let timerInterval = null;
+    const resendBtn = document.getElementById('resendBtn');
+    const resendText = document.getElementById('resendText');
+    const timerText = document.getElementById('timerText');
+    const countdownSpan = document.getElementById('countdown');
+    const resendForm = document.getElementById('resendForm');
+
+    function startCountdown() {
+      // Clear any existing timer
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+      
+      countdown = 60;
+      resendBtn.disabled = true;
+      resendBtn.classList.remove('text-gray-600', 'hover:text-gray-900', 'underline', 'underline-offset-4');
+      resendBtn.classList.add('text-gray-400', 'cursor-not-allowed');
+      resendText.classList.add('hidden');
+      timerText.classList.remove('hidden');
+      
+      timerInterval = setInterval(() => {
+        countdown--;
+        countdownSpan.textContent = countdown;
+        
+        if (countdown <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          // Automatically resend the code
+          resendForm.submit();
+        }
+      }, 1000);
+    }
+
+    // Start countdown when page loads
+    startCountdown();
+
+    // Handle form submission after auto-resend
+    resendForm.addEventListener('submit', function(e) {
+      // This will be called when auto-resend triggers
+      // The form will submit normally to resend the code
+    });
+  </script>
+</body>
+</html>
+

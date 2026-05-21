@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Home And Garden | Premium Home & Garden Essentials{% endblock %}
+
+{% block extra_css %}
+.product-card {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.product-card:hover {
+  transform: translateY(-4px);
+}
+.hero-image {
+  animation: fadeIn 1s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+{% endblock %}
+
+{% block content %}
+  <!-- Hero Section -->
+  <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
+      <div class="grid lg:grid-cols-2 gap-16 items-center">
+        <!-- Hero Content -->
+        <div class="text-center lg:text-left space-y-8">
+          <h1 class="text-5xl lg:text-7xl font-light tracking-tight text-gray-900 leading-none">
+            Grow Beauty,<br>
+            <span class="font-normal">Live Comfort.</span>
+          </h1>
+          <p class="text-lg lg:text-xl text-gray-600 font-light max-w-xl mx-auto lg:mx-0">
+            Transform your space with our curated collection of premium home and garden essentials.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <a href="/products" 
+               class="inline-block text-sm font-light border border-gray-900 px-8 py-3 hover:bg-gray-900 hover:text-white transition text-center">
+              Explore Collection
+            </a>
+            <a href="{{ url_for('main.about') }}" 
+               class="inline-block text-sm font-light text-gray-700 hover:text-gray-900 underline underline-offset-4">
+              Learn More
+            </a>
+          </div>
+        </div>
+
+        <!-- Hero Image -->
+        <div class="hero-image">
+          <img src="{{ url_for('static', filename='2ss.png') }}" 
+               alt="Home Garden" 
+               class="w-full h-[500px] object-cover rounded-lg shadow-sm">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Section -->
+  <section class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl lg:text-5xl font-light tracking-tight text-gray-900 mb-4">
+          Our Products
+        </h2>
+        <p class="text-lg text-gray-600 font-light max-w-2xl mx-auto">
+          Discover our carefully selected range of home and garden essentials
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 lg:gap-8">
+        {% for product in products %}
+        <div class="product-card group">
+          <a href="/product_detail?id={{ product.id if product is mapping else product[0] }}" class="block">
+            <div class="aspect-square mb-4 overflow-hidden bg-gray-50 rounded-lg">
+              <img src="{{ url_for('static', filename=product.image if product is mapping else product[5]) }}" 
+                   alt="{{ product.name if product is mapping else product[1] }}" 
+                   class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-sm font-light text-gray-900 line-clamp-2 min-h-[2.5rem]">
+                {{ product.name if product is mapping else product[1] }}
+              </h3>
+              <p class="text-sm font-light text-gray-600">{{ product.category if product is mapping else '' }}</p>
+              <p class="text-sm font-light text-gray-900">₱{{ "{:,.2f}".format(product.price if product is mapping else product[3]) }}</p>
+              {% if product is mapping and product.seller_id %}
+              <div class="text-xs font-light text-gray-500 hover:text-gray-900 hover:underline transition block">
+                by {{ product.shop_name or product.seller_name }}
+              </div>
+              {% endif %}
+              {% set stock = product.stock if product is mapping else product[4] %}
+              {% if stock <= 5 %}
+              <p class="text-xs text-red-500 font-light">Only {{ stock }} left in stock</p>
+              {% endif %}
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+      
+      {% if not products %}
+      <div class="text-center py-12">
+        <p class="text-gray-500 font-light">No products found.</p>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Profile | Home And Garden</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+    <style>
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            letter-spacing: -0.01em;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+    
+    <header class="sticky top-0 z-50 bg-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="flex items-center gap-3 group">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Home And Garden" class="w-10 h-10 transition-transform group-hover:scale-105">
+                    <span class="text-xl font-light tracking-tight">Home And Garden</span>
+                </a>
+                <a href="{{ url_for('seller.seller_dashboard') }}" class="text-sm font-light text-gray-600 hover:text-gray-900">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    
+    <section class="py-16 lg:py-24">
+        <div class="max-w-2xl mx-auto px-6 lg:px-8">
+            <h1 class="text-4xl lg:text-5xl font-light tracking-tight text-gray-900 mb-12">Seller Profile Settings</h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-6 p-4 text-sm font-light
+                            {% if category == 'success' %} bg-gray-50 text-gray-900 border border-gray-200
+                            {% elif category == 'error' %} bg-red-50 text-red-900 border border-red-200 {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="/seller_profile" method="POST" enctype="multipart/form-data" class="space-y-8">
+                
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-light text-gray-700 mb-2">First Name <span class="text-red-500">*</span></label>
+                            <input name="first_name" type="text" value="{{ seller.first_name if seller else '' }}" required
+                                   class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-light text-gray-700 mb-2">Last Name <span class="text-red-500">*</span></label>
+                            <input name="last_name" type="text" value="{{ seller.last_name if seller else '' }}" required
+                                   class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-light text-gray-700 mb-2">Email</label>
+                        <input type="email" value="{{ seller.email if seller else '' }}" readonly
+                               class="w-full px-4 py-3 border border-gray-300 bg-gray-50 text-gray-600 text-sm font-light cursor-not-allowed">
+                        <p class="text-xs font-light text-gray-500 mt-1">Email cannot be changed</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-light text-gray-700 mb-2">Shop Name <span class="text-red-500">*</span></label>
+                        <input name="shop_name" type="text" value="{{ seller.shop_name if seller else '' }}" required
+                               class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-6 space-y-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-medium text-gray-900">Address Information</h3>
+                            <button type="button" id="editAddressBtn" class="text-sm font-light text-gray-600 hover:text-gray-900 underline underline-offset-4">
+                                Edit Address
+                            </button>
+                        </div>
+
+                    
+                    <div class="border-t border-gray-200 pt-6 space-y-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-medium text-gray-900">Address Information</h3>
+                            <button type="button" id="editAddressBtn" class="text-sm font-light text-gray-600 hover:text-gray-900 underline underline-offset-4">
+                                Edit Address
+                            </button>
+                        </div>
+                        
+                        
+                        <div id="addressView" class="space-y-2">
+                            <div class="p-4 bg-gray-50 border border-gray-200 rounded">
+                                <p class="text-sm font-light text-gray-700">
+                                    {% if seller %}
+                                        {% if seller.house_number %}{{ seller.house_number }}{% endif %}
+                                        {% if seller.street_name %} {{ seller.street_name }}{% endif %}
+                                        {% if seller.house_number or seller.street_name %}<br>{% endif %}
+                                        {% if seller.barangay %}{{ seller.barangay }}{% endif %}
+                                        {% if seller.city_municipality or seller.city or seller.municipality %}
+                                            {% if seller.barangay %}, {% endif %}
+                                            {{ seller.city_municipality if seller.city_municipality else (seller.city if seller.city else seller.municipality) }}
+                                        {% endif %}
+                                        {% if seller.province %}
+                                            {% if seller.barangay or seller.city_municipality or seller.city or seller.municipality %}, {% endif %}
+                                            {{ seller.province }}
+                                        {% endif %}
+                                        {% if seller.region %}
+                                            {% if seller.province or seller.barangay or seller.city_municipality or seller.city or seller.municipality %}, {% endif %}
+                                            {{ seller.region }}
+                                        {% endif %}
+                                        {% if seller.postal_code %}
+                                            <br>{{ seller.postal_code }}
+                                        {% endif %}
+                                        {% if seller.country %}
+                                            {% if seller.region or seller.province or seller.barangay or seller.city_municipality or seller.city or seller.municipality %}, {% endif %}
+                                            {{ seller.country }}
+                                        {% endif %}
+                                        {% if not seller.house_number and not seller.street_name and not seller.barangay and not seller.city_municipality and not seller.city and not seller.municipality and not seller.province and not seller.region and not seller.country %}
+                                            <span class="text-gray-400">No address information available</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-gray-400">No address information available</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        
+                        <div id="addressEdit" class="space-y-4 hidden">
+                            <div>
+                                <label class="block text-sm font-light text-gray-700 mb-2">Country</label>
+                                <select id="country" name="country"
+                                        class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                                    <option value="">Select Country</option>
+                                    <option value="Philippines" {% if not seller or seller.country == 'Philippines' or not seller.country %}selected{% endif %}>Philippines</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-light text-gray-700 mb-2">Region</label>
+                                <select id="region" name="region"
+                                        class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                                    <option value="">Select Region</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-light text-gray-700 mb-2">Province</label>
+                                <select id="province" name="province"
+                                        class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                                    <option value="">Select Province</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-light text-gray-700 mb-2">City / Municipality</label>
+                                <select id="city_municipality" name="city_municipality"
+                                        class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                                    <option value="">Select City / Municipality</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-light text-gray-700 mb-2">Barangay</label>
+                                <select id="barangay" name="barangay"
+                                        class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                                    <option value="">Select Barangay</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-light text-gray-700 mb-2">House Number</label>
+                                    <input name="house_number" type="text" value="{{ seller.house_number if seller else '' }}" placeholder="123"
+                                           class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-light text-gray-700 mb-2">Postal Code</label>
+                                    <input name="postal_code" type="text" value="{{ seller.postal_code if seller else '' }}" placeholder="1234"
+                                           class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-light text-gray-700 mb-2">Street Name</label>
+                                <input name="street_name" type="text" value="{{ seller.street_name if seller else '' }}" placeholder="Street Name"
+                                       class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="button" id="cancelEditBtn" class="flex-1 border border-gray-300 text-gray-700 py-2 text-sm font-light hover:bg-gray-50 transition">
+                                    Cancel
+                                </button>
+                                <button type="button" id="saveAddressBtn" class="flex-1 bg-gray-900 text-white py-2 text-sm font-light hover:bg-gray-800 transition">
+                                    Save Address
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="border-t border-gray-200 pt-6 space-y-4">
+                        <h3 class="text-sm font-medium text-gray-900 mb-4">Payment Information</h3>
+                        
+                        <div>
+                            <label class="block text-sm font-light text-gray-700 mb-2">GCash Number</label>
+                            <input name="gcash_number" type="text" value="{{ seller.gcash_number if seller else '' }}" placeholder="09XX XXX XXXX"
+                                   class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                            <p class="text-xs text-gray-500 mt-1 font-light">Enter your GCash account number to receive payments from customers</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-light text-gray-700 mb-2">PayMaya Number</label>
+                            <input name="paymaya_number" type="text" value="{{ seller.paymaya_number if seller else '' }}" placeholder="09XX XXX XXXX"
+                                   class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                            <p class="text-xs text-gray-500 mt-1 font-light">Enter your PayMaya account number to receive payments from customers</p>
+                        </div>
+                    </div>
+
+                    
+                    <div class="border-t border-gray-200 pt-6">
+                        <label class="block text-sm font-light text-gray-700 mb-2">Valid ID</label>
+                        {% if seller and seller.valid_id and seller.valid_id != 'uploads/valid_ids/default.jpg' %}
+                            <div class="mb-4">
+                                <a href="{{ url_for('static', filename=seller.valid_id) }}" target="_blank" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                                    View Current Valid ID
+                                </a>
+                            </div>
+                        {% endif %}
+                        <input type="file" name="valid_id" accept="image/*,.pdf"
+                               class="w-full px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition">
+                        <p class="text-xs font-light text-gray-500 mt-2">Accepted formats: JPG, PNG, PDF (Max 5MB). Leave empty to keep current ID.</p>
+                    </div>
+                </div>
+
+                
+                <div class="border-t border-gray-200 pt-8 space-y-4">
+                    <button type="submit" class="w-full bg-gray-900 text-white py-4 text-sm font-light hover:bg-gray-800 transition">
+                        Save Changes
+                    </button>
+                    <a href="{{ url_for('seller.seller_dashboard') }}" class="block w-full border border-gray-900 text-gray-900 py-4 text-sm font-light text-center hover:bg-gray-900 hover:text-white transition">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        // Address Edit/Cancel functionality
+        const editAddressBtn = document.getElementById('editAddressBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const saveAddressBtn = document.getElementById('saveAddressBtn');
+        const addressView = document.getElementById('addressView');
+        const addressEdit = document.getElementById('addressEdit');
+        const mainForm = document.querySelector('form');
+
+        if (editAddressBtn) {
+            editAddressBtn.addEventListener('click', () => {
+                addressView.classList.add('hidden');
+                addressEdit.classList.remove('hidden');
+                editAddressBtn.classList.add('hidden');
+            });
+        }
+
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', () => {
+                addressView.classList.remove('hidden');
+                addressEdit.classList.add('hidden');
+                editAddressBtn.classList.remove('hidden');
+                // Reload page to reset form values
+                window.location.reload();
+            });
+        }
+
+        if (saveAddressBtn) {
+            saveAddressBtn.addEventListener('click', () => {
+                // Submit the main form
+                mainForm.submit();
+            });
+        }
+
+        // Address API
+        const regionSelect = document.getElementById("region");
+        const provinceSelect = document.getElementById("province");
+        const cityMunicipalitySelect = document.getElementById("city_municipality");
+        const barangaySelect = document.getElementById("barangay");
+        const countrySelect = document.getElementById("country");
+
+        // Set current values if they exist
+        const currentRegion = "{{ seller.region if seller else '' }}";
+        const currentProvince = "{{ seller.province if seller else '' }}";
+        const currentCityMunicipality = "{{ seller.city_municipality if seller else (seller.city if seller and seller.city else (seller.municipality if seller and seller.municipality else '')) }}";
+        const currentBarangay = "{{ seller.barangay if seller else '' }}";
+
+        countrySelect.addEventListener("change", () => {
+            if (countrySelect.value === "Philippines") {
+                loadRegions();
+            }
+        });
+
+        regionSelect.addEventListener("change", () => {
+            provinceSelect.innerHTML = '<option value="">Select Province</option>';
+            cityMunicipalitySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            if (regionSelect.value) {
+                loadProvinces(regionSelect.value);
+            }
+        });
+
+        provinceSelect.addEventListener("change", () => {
+            cityMunicipalitySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            if (provinceSelect.value && regionSelect.value) {
+                loadCityMunicipality(regionSelect.value, provinceSelect.value);
+            }
+        });
+
+        cityMunicipalitySelect.addEventListener("change", () => {
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            if (cityMunicipalitySelect.value && regionSelect.value && provinceSelect.value) {
+                loadBarangays(regionSelect.value, provinceSelect.value, cityMunicipalitySelect.value);
+            }
+        });
+
+        function loadRegions() {
+            fetch("/get_regions")
+                .then(response => response.json())
+                .then(data => {
+                    regionSelect.innerHTML = '<option value="">Select Region</option>';
+                    data.regions.forEach(region => {
+                        const option = document.createElement("option");
+                        option.value = region;
+                        option.textContent = region;
+                        if (region === currentRegion) {
+                            option.selected = true;
+                        }
+                        regionSelect.appendChild(option);
+                    });
+                    if (currentRegion) {
+                        loadProvinces(currentRegion);
+                    }
+                })
+                .catch(error => console.error("Error loading regions:", error));
+        }
+
+        function loadProvinces(region) {
+            fetch(`/get_provinces?region=${encodeURIComponent(region)}`)
+                .then(response => response.json())
+                .then(data => {
+                    provinceSelect.innerHTML = '<option value="">Select Province</option>';
+                    if (data.provinces && data.provinces.length > 0) {
+                        data.provinces.forEach(province => {
+                            const option = document.createElement("option");
+                            option.value = province;
+                            option.textContent = province;
+                            if (province === currentProvince) {
+                                option.selected = true;
+                            }
+                            provinceSelect.appendChild(option);
+                        });
+                    }
+                    if (currentProvince && currentRegion) {
+                        loadCityMunicipality(currentRegion, currentProvince);
+                    }
+                })
+                .catch(error => console.error("Error loading provinces:", error));
+        }
+
+        function loadCityMunicipality(region, province) {
+            fetch(`/get_city_municipality?region=${encodeURIComponent(region)}&province=${encodeURIComponent(province)}`)
+                .then(response => response.json())
+                .then(data => {
+                    cityMunicipalitySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+                    if (data.cities_municipalities && data.cities_municipalities.length > 0) {
+                        data.cities_municipalities.forEach(cityMunicipality => {
+                            const option = document.createElement("option");
+                            option.value = cityMunicipality;
+                            option.textContent = cityMunicipality;
+                            if (cityMunicipality === currentCityMunicipality) {
+                                option.selected = true;
+                            }
+                            cityMunicipalitySelect.appendChild(option);
+                        });
+                    }
+                    if (currentCityMunicipality && currentRegion && currentProvince) {
+                        loadBarangays(currentRegion, currentProvince, currentCityMunicipality);
+                    }
+                })
+                .catch(error => console.error("Error loading cities/municipalities:", error));
+        }
+
+        function loadBarangays(region, province, cityMunicipality) {
+            const url = `/get_barangays?region=${encodeURIComponent(region)}&province=${encodeURIComponent(province)}&city_municipality=${encodeURIComponent(cityMunicipality)}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+                    if (data.barangays && data.barangays.length > 0) {
+                        data.barangays.forEach(barangay => {
+                            const option = document.createElement("option");
+                            option.value = barangay;
+                            option.textContent = barangay;
+                            if (barangay === currentBarangay) {
+                                option.selected = true;
+                            }
+                            barangaySelect.appendChild(option);
+                        });
+                    } else {
+                        // If no barangays found, show a message
+                        const option = document.createElement("option");
+                        option.value = "";
+                        option.textContent = "No barangays available";
+                        option.disabled = true;
+                        barangaySelect.appendChild(option);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading barangays:", error);
+                    barangaySelect.innerHTML = '<option value="">Error loading barangays</option>';
+                });
+        }
+
+        // Load regions on page load if country is Philippines
+        if (countrySelect.value === "Philippines") {
+            loadRegions();
+        }
+    </script>
+</body>
+</html>
+

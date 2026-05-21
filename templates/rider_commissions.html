@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commissions | Home And Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/confirm-modal.css') }}">
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
+    }
+    .sidebar {
+      transition: transform 0.3s ease;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+    }
+    .nav-item.active {
+      background-color: #f9fafb;
+      color: #111827;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+  <div class="flex h-screen overflow-hidden">
+    
+    <aside class="sidebar fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100">
+      <div class="flex flex-col h-full">
+        
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="w-10 h-10">
+            <div>
+              <h2 class="text-lg font-light tracking-tight">Rider Portal</h2>
+              <p class="text-xs text-gray-500 font-light">Commissions</p>
+            </div>
+          </div>
+        </div>
+
+        
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+          <a href="{{ url_for('rider.rider_dashboard') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="{{ url_for('rider.rider_dashboard') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <span>Available Orders</span>
+          </a>
+          <a href="{{ url_for('rider.rider_dashboard') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>My Deliveries</span>
+          </a>
+          <a href="{{ url_for('rider.rider_commissions') }}" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Commissions</span>
+          </a>
+          <a href="{{ url_for('main.home') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span>View Shop</span>
+          </a>
+        </nav>
+
+        
+        <div class="p-4 border-t border-gray-100">
+          <a href="{{ url_for('auth.logout') }}" onclick="event.preventDefault(); const href = this.href; customConfirm('Are you sure you want to log out?', {title: 'Confirm Logout', type: 'warning', confirmText: 'Logout', confirmButtonClass: 'confirm-modal-button-danger'}).then(res => { if(res) window.location.href = href; });" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition text-sm font-light text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span>Logout</span>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
+
+    
+    <div class="flex-1 flex flex-col overflow-hidden">
+      
+      <header class="bg-white border-b border-gray-100 px-6 lg:px-8 py-4 flex items-center justify-between">
+        <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 hover:text-gray-900">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <h1 class="text-2xl font-light tracking-tight text-gray-900">Commission Details</h1>
+        <div class="flex items-center gap-4">
+          <span class="text-sm font-light text-gray-600">Welcome, {{ session.get('rider_name', 'Rider') }}</span>
+        </div>
+      </header>
+
+      
+      <main class="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="mb-6 p-4 text-sm font-light
+              {% if category == 'success' %} bg-gray-50 text-gray-900 border border-gray-200
+              {% elif category == 'error' %} bg-red-50 text-red-900 border border-red-200 {% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-light text-gray-600 mb-2">Total Commission</p>
+                <p class="text-3xl font-light text-green-600">₱{{ "%.2f"|format(total_commission) }}</p>
+              </div>
+              <div class="bg-green-50 p-3 rounded-lg">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-light text-gray-600 mb-2">Delivered Orders</p>
+                <p class="text-3xl font-light text-blue-600">{{ total_delivered_orders }}</p>
+              </div>
+              <div class="bg-blue-50 p-3 rounded-lg">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-light text-gray-600 mb-2">Items Delivered</p>
+                <p class="text-3xl font-light text-purple-600">{{ total_items_delivered }}</p>
+              </div>
+              <div class="bg-purple-50 p-3 rounded-lg">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-light text-gray-600 mb-2">Avg Per Delivery</p>
+                <p class="text-3xl font-light text-cyan-600">₱{{ "%.2f"|format(avg_commission) }}</p>
+              </div>
+              <div class="bg-cyan-50 p-3 rounded-lg">
+                <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 class="text-lg font-light text-gray-900 mb-6">Commission Breakdown</h2>
+          
+          {% if commissions|length == 0 %}
+            <div class="text-center py-12">
+              <p class="text-gray-600 font-light">No deliveries completed yet.</p>
+            </div>
+          {% else %}
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-4 text-sm font-light text-gray-600">Order ID</th>
+                    <th class="text-left py-3 px-4 text-sm font-light text-gray-600">Product</th>
+                    <th class="text-left py-3 px-4 text-sm font-light text-gray-600">Shop</th>
+                    <th class="text-left py-3 px-4 text-sm font-light text-gray-600">Qty</th>
+                    <th class="text-left py-3 px-4 text-sm font-light text-gray-600">Order Total</th>
+                    <th class="text-left py-3 px-4 text-sm font-light text-gray-600">Commission (5%)</th>
+                    <th class="text-left py-3 px-4 text-sm font-light text-gray-600">Per Item</th>
+                    <th class="text-left py-3 px-4 text-sm font-light text-gray-600">Delivered Date</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  {% for commission in commissions %}
+                    <tr class="hover:bg-gray-50 transition">
+                      <td class="py-4 px-4 text-sm font-light">#{{ commission.order_id }}</td>
+                      <td class="py-4 px-4 text-sm font-light text-gray-700">{{ commission.product_name }}</td>
+                      <td class="py-4 px-4 text-sm font-light text-gray-700">{{ commission.shop_name }}</td>
+                      <td class="py-4 px-4 text-sm font-light">{{ commission.quantity }}</td>
+                      <td class="py-4 px-4 text-sm font-light">₱{{ "%.2f"|format(commission.total) }}</td>
+                      <td class="py-4 px-4 text-sm font-light text-green-600 font-medium">₱{{ "%.2f"|format(commission.commission) }}</td>
+                      <td class="py-4 px-4 text-sm font-light">₱{{ "%.2f"|format(commission.commission_per_item) }}</td>
+                      <td class="py-4 px-4 text-sm font-light text-gray-600">
+                        {% if commission.delivered_at %}
+                          {{ commission.delivered_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </main>
+    </div>
+  </div>
+
+  
+  <script src="{{ url_for('static', filename='js/confirm-modal.js') }}"></script>
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>
