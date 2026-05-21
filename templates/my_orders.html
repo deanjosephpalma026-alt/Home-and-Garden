@@ -149,6 +149,7 @@
                 </span>
                 <span class="text-xs text-gray-500">Waiting for seller confirmation</span>
                 <form id="cancel-order-form-{{ order.id }}" action="{{ url_for('order.delete_order', order_id=order.id) }}" method="POST" class="mt-2">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="text-xs font-light text-red-600 hover:text-red-800 underline underline-offset-4">
                     Cancel Order
                   </button>
@@ -214,6 +215,7 @@
                 </span>
                 {% if order.delivery_status not in ['picked_up', 'in_transit', 'delivered'] %}
                 <form id="cancel-order-form-{{ order.id }}" action="{{ url_for('order.delete_order', order_id=order.id) }}" method="POST" class="mt-2">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="text-xs font-light text-red-600 hover:text-red-800 underline underline-offset-4">
                     Cancel Order
                   </button>

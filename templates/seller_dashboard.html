@@ -212,8 +212,7 @@
         <section id="products" class="section hidden">
           <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
             <h2 class="text-xl font-light tracking-tight text-gray-900 mb-6">Add New Product</h2>
-            <form action="{{ url_for('seller.add_product') }}" method="POST" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
-              <input type="text" name="name" placeholder="Product Name" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition" required>
+            <form action="{{ url_for('seller.add_product') }}" method="POST" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">              <input type="text" name="name" placeholder="Product Name" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition" required>
               <input type="number" name="price" step="0.01" placeholder="Price (₱)" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition" required>
               <input type="number" name="stock" placeholder="Stock Quantity" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition" required>
               <select name="category" class="px-4 py-3 border border-gray-300 text-sm font-light focus:outline-none focus:border-gray-900 transition" required>
@@ -351,6 +350,7 @@
                       <div class="flex flex-col gap-2">
                         {% if o.seller_confirmed != 1 and (o.payment_status == 'Pending' or o.payment_status == 'Paid') %}
                         <form action="/confirm_order?order_id={{ o.id }}" method="POST">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <button class="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-900 text-white text-xs sm:text-sm font-light hover:bg-gray-800 transition whitespace-nowrap">
                             {% if o.payment_status == 'Paid' %}
                             Confirm Order
@@ -494,6 +494,7 @@
                       {% if refund.status == 'pending' %}
                       <div class="flex gap-2 mt-4">
                         <form id="approve-refund-form-{{ refund.id }}" action="/approve_refund?refund_id={{ refund.id }}" method="POST">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <button type="submit" 
                                   class="px-4 py-2 bg-green-600 text-white text-sm font-light hover:bg-green-700 transition">
                             Approve Refund
@@ -584,6 +585,7 @@
       </button>
       <h2 class="text-xl font-light tracking-tight text-gray-900 mb-4">Reject Refund Request</h2>
       <form id="rejectForm" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" id="rejectRefundId" name="refund_id">
         <div class="mb-4">
           <label for="rejectionReason" class="block text-sm font-light text-gray-700 mb-2">Reason for Rejection <span class="text-gray-500">(Required)</span></label>
