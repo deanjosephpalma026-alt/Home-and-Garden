@@ -102,7 +102,7 @@ if __name__ == '__main__':
     import threading
     from scripts.discovery import start_udp_discovery_server
     
-    # Start UDP discovery in a daemon thread so it doesn't block the main Flask app
+    
     threading.Thread(
         target=start_udp_discovery_server, 
         args=(Config.FLASK_PORT, 5001), 
