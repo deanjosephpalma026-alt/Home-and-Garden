@@ -19,13 +19,16 @@ from routes.mobile_api import mobile_api_bp
 from routes.admin import admin_bp
 
 try:
-    from flask_wtf.csrf import CSRFProtect
+    from flask_wtf.csrf import CSRFProtect, generate_csrf
 except ModuleNotFoundError:
     CSRFProtect = None
+    generate_csrf = None
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.config.setdefault('WTF_CSRF_ENABLED', True)
+    app.config.setdefault('WTF_CSRF_SECRET_KEY', app.config.get('SECRET_KEY'))
 
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
@@ -46,6 +49,8 @@ def create_app():
     # Initialize CSRF Protection
     if CSRFProtect is not None:
         csrf = CSRFProtect(app)
+        if generate_csrf is not None:
+            app.jinja_env.globals['csrf_token'] = generate_csrf
         csrf.exempt(api_bp)
         csrf.exempt(mobile_api_bp)
     else:
