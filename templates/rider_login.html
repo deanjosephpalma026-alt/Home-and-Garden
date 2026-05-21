@@ -56,6 +56,7 @@
     {% endwith %}
 
     <form method="POST" action="{{ url_for('rider.rider_login') }}" class="space-y-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div>
         <label class="block text-sm font-light text-gray-700 mb-2">Cellphone Number</label>
         <input type="text" name="contact" required placeholder="09123456789"

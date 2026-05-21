@@ -58,6 +58,7 @@
 
     
     <form action="{{ url_for('auth.verify_email') }}" method="POST" class="space-y-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="email" value="{{ email }}">
       <input type="hidden" name="user_type" value="{{ user_type }}">
       
@@ -82,6 +83,7 @@
 
     <div class="mt-4 text-center">
       <form id="resendForm" action="/resend_verification" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="email" value="{{ email }}">
         <input type="hidden" name="user_type" value="{{ user_type }}">
         <button type="button" id="resendBtn" disabled
