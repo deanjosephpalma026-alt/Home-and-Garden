@@ -450,6 +450,10 @@
           try {
             const response = await fetch(form.action, {
               method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+              },
               body: formData
             });
             
@@ -460,7 +464,7 @@
               
               // Redirect to home after 2 seconds
               setTimeout(() => {
-                window.location.href = '{{ url_for("home") }}';
+                window.location.href = '{{ url_for("main.home") }}';
               }, 2000);
             } else {
               // Handle error

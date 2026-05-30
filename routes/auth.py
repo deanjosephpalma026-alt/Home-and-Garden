@@ -627,6 +627,15 @@ def api_auth_bridge_login():
                 }
             return {'email': email, 'role': 'user'}
         
+        try:
+            # Log keys present in the Supabase sign-in response for debugging.
+            current_app.logger.info(
+                'Bridge login: sign_in_response keys=%s',
+                list(sign_in_response.keys()) if isinstance(sign_in_response, dict) else str(type(sign_in_response)),
+            )
+        except Exception:
+            pass
+
         return api_success('Login successful.', data={
             'user': _bridge_public_payload(account_type, account or {}),
             'session': sign_in_response

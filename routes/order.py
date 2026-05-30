@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from database import get_db_connection, pg_column_exists
 import psycopg2.extras
 import traceback
+import logging
 
 order_bp = Blueprint('order', __name__)
 
@@ -287,10 +288,16 @@ def checkout():
             cur.execute("DELETE FROM cart WHERE user_id=%s", (user_id,))
             conn.commit()
             flash('Order placed successfully!', 'success')
+            # If this request came from AJAX (fetch), return JSON so client-side JS can handle it
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in (request.headers.get('Accept') or ''):
+                return jsonify({'success': True, 'message': 'Order placed successfully.'})
             return redirect(url_for('order.my_orders'))
         except Exception as e:
             conn.rollback()
-            print(f"Checkout error: {e}")
+            logging.exception('Checkout error')
+            # If AJAX, return JSON error
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in (request.headers.get('Accept') or ''):
+                return jsonify({'success': False, 'message': 'Checkout failed. Please try again.'}), 500
             flash('Checkout failed. Please try again.', 'error')
             return redirect(url_for('order.checkout'))
         

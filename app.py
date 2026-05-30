@@ -53,6 +53,9 @@ def create_app():
             app.jinja_env.globals['csrf_token'] = generate_csrf
         csrf.exempt(api_bp)
         csrf.exempt(mobile_api_bp)
+        # Exempt auth blueprint API endpoints (e.g. /api/auth/bridge-login)
+        # so mobile clients can POST JSON without needing a CSRF token.
+        csrf.exempt(auth_bp)
     else:
         app.jinja_env.globals['csrf_token'] = lambda: ''
         logger.warning('flask_wtf is not installed; CSRF protection is disabled.')
